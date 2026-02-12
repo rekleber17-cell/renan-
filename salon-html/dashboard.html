@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Salon Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <div class="w-64 bg-white border-r border-gray-200">
+            <div class="p-6 border-b border-gray-200">
+                <h1 class="text-2xl font-bold text-red-600">💈 Salon Panel</h1>
+            </div>
+
+            <nav class="p-4 space-y-1">
+                <a href="dashboard.html" class="flex items-center gap-3 px-4 py-3 bg-red-50 text-red-700 rounded-lg font-medium">
+                    📊 Dashboard
+                </a>
+                <a href="profissionais.html" class="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg">
+                    👥 Profissionais
+                </a>
+                <a href="servicos.html" class="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg">
+                    ✂️ Serviços
+                </a>
+                <a href="agenda.html" class="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg">
+                    📅 Agenda
+                </a>
+                <a href="clientes.html" class="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg">
+                    👤 Clientes
+                </a>
+                <a href="configuracoes.html" class="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg">
+                    ⚙️ Configurações
+                </a>
+            </nav>
+
+            <div class="p-4 border-t border-gray-200 absolute bottom-0 w-64">
+                <button onclick="logout()" class="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg w-full">
+                    🚪 Sair
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-8">
+            <div class="mb-8">
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
+                <p class="text-gray-600" id="welcomeText">Bem-vindo ao seu salão</p>
+            </div>
+
+            <!-- Estatísticas -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600 mb-1">Profissionais Ativos</p>
+                            <p class="text-2xl font-bold text-gray-900" id="profissionaisCount">0</p>
+                        </div>
+                        <div class="p-3 rounded-lg bg-blue-50">
+                            <span class="text-2xl">👥</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600 mb-1">Serviços Cadastrados</p>
+                            <p class="text-2xl font-bold text-gray-900" id="servicosCount">0</p>
+                        </div>
+                        <div class="p-3 rounded-lg bg-purple-50">
+                            <span class="text-2xl">✂️</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600 mb-1">Agendamentos Ativos</p>
+                            <p class="text-2xl font-bold text-gray-900" id="agendamentosCount">0</p>
+                        </div>
+                        <div class="p-3 rounded-lg bg-green-50">
+                            <span class="text-2xl">📅</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600 mb-1">Faturamento Total</p>
+                            <p class="text-2xl font-bold text-gray-900" id="faturamentoTotal">R$ 0,00</p>
+                        </div>
+                        <div class="p-3 rounded-lg bg-orange-50">
+                            <span class="text-2xl">💰</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Link de Agendamento -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+                <div class="p-6 border-b border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-900">Link de Agendamento</h3>
+                </div>
+                <div class="p-6">
+                    <p class="text-sm text-gray-600 mb-3">
+                        Compartilhe este link para seus clientes fazerem agendamentos:
+                    </p>
+                    <div class="bg-gray-100 p-4 rounded-lg">
+                        <code class="text-sm break-all" id="agendamentoLink">Carregando...</code>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
+    <script>
+        // Configuração do Supabase
+        const SUPABASE_URL = 'https://kxdmigytkedpahccfraa.supabase.co'
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt4ZG1pZ3l0a2VkcGFoY2NmcmFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgxNDkxMjAsImV4cCI6MjA4MzcyNTEyMH0.-QQCRguA4oPqM3p4Mpq7JB8XEmhdj5VlT62K_TS2q4o'
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+
+        // Funções úteis
+        async function checkAuth() {
+            const { data: { session } } = await supabase.auth.getSession()
+            if (!session) {
+                window.location.href = 'index.html'
+                return null
+            }
+            return session
+        }
+
+        async function getTenant(userId) {
+            const { data, error } = await supabase.from('tenants').select('*').eq('user_id', userId).single()
+            return error ? null : data
+        }
+
+        function logout() {
+            supabase.auth.signOut()
+            window.location.href = 'index.html'
+        }
+
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
+        }
+    </script>
+    <script>
+        async function loadDashboard() {
+            const session = await checkAuth()
+            if (!session) return
+
+            const tenant = await getTenant(session.user.id)
+            if (!tenant) {
+                alert('Salão não encontrado!')
+                logout()
+                return
+            }
+
+            // Atualizar boas-vindas
+            document.getElementById('welcomeText').textContent = `Bem-vindo(a) ao ${tenant.nome_salao}`
+
+            // Link de agendamento
+            document.getElementById('agendamentoLink').textContent = 
+                `${window.location.origin}/agendamento.html?slug=${tenant.slug}`
+
+            // Buscar estatísticas
+            const { count: profCount } = await supabase
+                .from('professionals')
+                .select('*', { count: 'exact', head: true })
+                .eq('tenant_id', tenant.id)
+                .eq('ativo', true)
+
+            const { count: servCount } = await supabase
+                .from('services')
+                .select('*', { count: 'exact', head: true })
+                .eq('tenant_id', tenant.id)
+                .eq('ativo', true)
+
+            const today = new Date().toISOString().split('T')[0]
+            const { count: agendCount } = await supabase
+                .from('appointments')
+                .select('*', { count: 'exact', head: true })
+                .eq('tenant_id', tenant.id)
+                .gte('data_agendamento', today)
+                .in('status', ['pendente', 'confirmado'])
+
+            const { data: faturamentoData } = await supabase
+                .from('appointments')
+                .select('valor_servico')
+                .eq('tenant_id', tenant.id)
+                .eq('status', 'concluido')
+
+            const faturamento = faturamentoData?.reduce((acc, curr) => acc + curr.valor_servico, 0) || 0
+
+            // Atualizar UI
+            document.getElementById('profissionaisCount').textContent = profCount || 0
+            document.getElementById('servicosCount').textContent = servCount || 0
+            document.getElementById('agendamentosCount').textContent = agendCount || 0
+            document.getElementById('faturamentoTotal').textContent = formatCurrency(faturamento)
+        }
+
+        loadDashboard()
+    </script>
+</body>
+</html>

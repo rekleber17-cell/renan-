@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agendamento - Salon Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:opsz,wght@6..96,300;6..96,400;6..96,500;6..96,600;6..96,700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gray-50">
+    <div class="min-h-screen">
+        <!-- Header -->
+        <header id="salonHeader" class="bg-white py-6">
+            <div class="container mx-auto px-4 max-w-4xl">
+                <div class="flex items-center gap-6">
+                <!-- Foto de Perfil -->
+                <div class="flex-shrink-0">
+                    <img id="salonLogo" src="" alt="Logo" class="w-32 h-32 rounded-lg object-cover border-4 border-blue-950 shadow-lg hidden">
+                    <div id="salonLogoPlaceholder" class="w-32 h-32 rounded-lg bg-gradient-to-br from-blue-950 to-blue-900 flex items-center justify-center text-5xl font-bold text-white shadow-lg">
+                        ✂️
+                    </div>
+                </div>
+                
+                <!-- Informações -->
+                <div class="flex-1">
+                    <h1 id="salonName" class="text-5xl text-blue-950 mb-2" style="font-family: 'Cormorant Garamond', serif; font-weight: 600; letter-spacing: 0.05em; line-height: 1;">Carregando...</h1>
+                    <div class="space-y-1">
+                        <p id="salonContact" class="text-base text-gray-700 font-semibold flex items-center gap-2">
+                            <span>📱</span>
+                        </p>
+                        <p id="salonAddress" class="text-sm text-gray-600 flex items-center gap-2">
+                            <span>📍</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="container mx-auto px-4 py-8 max-w-4xl">
+            <!-- Progress Steps -->
+            <div class="mb-8">
+                <div class="flex items-center justify-between">
+                    <div class="flex-1 text-center">
+                        <div id="step1Icon" class="w-10 h-10 mx-auto rounded-full bg-red-600 text-white flex items-center justify-center font-bold mb-2">1</div>
+                        <p class="text-sm text-gray-600">Profissional</p>
+                    </div>
+                    <div class="flex-1 border-t-2 border-gray-300 mx-4"></div>
+                    <div class="flex-1 text-center">
+                        <div id="step2Icon" class="w-10 h-10 mx-auto rounded-full bg-gray-300 text-white flex items-center justify-center font-bold mb-2">2</div>
+                        <p class="text-sm text-gray-600">Serviço</p>
+                    </div>
+                    <div class="flex-1 border-t-2 border-gray-300 mx-4"></div>
+                    <div class="flex-1 text-center">
+                        <div id="step3Icon" class="w-10 h-10 mx-auto rounded-full bg-gray-300 text-white flex items-center justify-center font-bold mb-2">3</div>
+                        <p class="text-sm text-gray-600">Data/Hora</p>
+                    </div>
+                    <div class="flex-1 border-t-2 border-gray-300 mx-4"></div>
+                    <div class="flex-1 text-center">
+                        <div id="step4Icon" class="w-10 h-10 mx-auto rounded-full bg-gray-300 text-white flex items-center justify-center font-bold mb-2">4</div>
+                        <p class="text-sm text-gray-600">Seus Dados</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 1: Escolher Profissional -->
+            <div id="step1" class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">Escolha o Profissional</h2>
+                <div id="professionalsList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+            </div>
+
+            <!-- Step 2: Escolher Serviço -->
+            <div id="step2" class="hidden bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">Escolha o Serviço</h2>
+                <div id="servicesList"></div>
+                <button onclick="prevStep(1)" class="mt-6 text-gray-600 hover:text-gray-900">← Voltar</button>
+            </div>
+
+            <!-- Step 3: Escolher Data/Hora -->
+            <div id="step3" class="hidden bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">Escolha Data e Horário</h2>
+
+                <div class="mb-6">
+                    <div class="flex items-center justify-between mb-3">
+                        <label class="block text-sm font-medium text-gray-700">Selecione o Dia</label>
+                        <div class="flex gap-2 items-center">
+                            <button type="button" onclick="changeWeek(-7)" id="prevWeekBtn" class="flex items-center gap-2 px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-red-50 transition" aria-label="Semana anterior" title="Semana anterior">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-700" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M7.707 3.707a1 1 0 010 1.414L4.414 9H15a1 1 0 110 2H4.414l3.293 3.293a1 1 0 01-1.414 1.414l-5-5a1 1 0 010-1.414l5-5a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                                <span class="hidden sm:inline">Anterior</span>
+                            </button>
+
+                            <div class="relative">
+                                <input type="date" id="datePicker" class="sr-only" />
+                                <button type="button" id="openDatePickerBtn" class="flex items-center gap-2 px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-red-50 transition" aria-label="Abrir calendário" title="Escolher data diretamente">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-700" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M6 2a1 1 0 100 2h8a1 1 0 100-2H6zM3 6a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V6zm4 3a1 1 0 100 2h6a1 1 0 100-2H7z"/></svg>
+                                    <span class="hidden sm:inline">Agenda</span>
+                                </button>
+
+                                <!-- Calendar Modal -->
+                                <div id="calendarModal" class="fixed inset-0 z-40 flex items-center justify-center px-4 py-6 sm:px-6 hidden" aria-hidden="true">
+                                    <div id="calendarOverlay" class="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity opacity-0"></div>
+
+                                    <div id="calendarPanel" class="relative bg-white rounded-lg shadow-xl w-full max-w-md transform transition-all duration-200 ease-out scale-95 opacity-0">
+                                        <div class="p-4">
+                                            <div class="flex items-center justify-between mb-3">
+                                                <div class="flex items-center gap-3">
+                                                    <button id="calendarPrevMonth" class="p-2 rounded-md hover:bg-gray-100 border border-gray-200 bg-white shadow-sm" title="Mês anterior" aria-label="Mês anterior">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-700" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M7.707 3.707a1 1 0 010 1.414L4.414 9H15a1 1 0 110 2H4.414l3.293 3.293a1 1 0 01-1.414 1.414l-5-5a1 1 0 010-1.414l5-5a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                                                    </button>
+                                                    <div id="calendarTitle" class="text-lg font-semibold text-gray-900"></div>
+                                                    <button id="calendarNextMonth" class="p-2 rounded-md hover:bg-gray-100 border border-gray-200 bg-white shadow-sm" title="Próximo mês" aria-label="Próximo mês">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-700" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M12.293 16.293a1 1 0 010-1.414L15.586 11H5a1 1 0 110-2h10.586l-3.293-3.293a1 1 0 011.414-1.414l5 5a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg>
+                                                    </button>
+                                                </div>
+                                                <div class="flex items-center gap-2">
+                                                    <button id="calendarSelectToday" class="px-3 py-1 text-sm rounded-md text-gray-700 hover:bg-gray-100">Hoje</button>
+                                                    <button id="calendarCancel" class="px-3 py-1 text-sm rounded-md text-gray-700 hover:bg-gray-100">Cancelar</button>
+                                                </div>
+                                            </div>
+
+                                            <div class="grid grid-cols-7 gap-2 text-center text-xs text-gray-600 mb-2">
+                                                <div>DOM</div><div>SEG</div><div>TER</div><div>QUA</div><div>QUI</div><div>SEX</div><div>SAB</div>
+                                            </div>
+
+                                            <div id="calendarGrid" class="grid grid-cols-7 gap-2"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button type="button" onclick="changeWeek(7)" id="nextWeekBtn" class="flex items-center gap-2 px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-red-50 transition" aria-label="Próxima semana" title="Próxima semana">
+                                <span class="hidden sm:inline">Próxima</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-700" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M12.293 16.293a1 1 0 010-1.414L15.586 11H5a1 1 0 110-2h10.586l-3.293-3.293a1 1 0 011.414-1.414l5 5a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="daySelector" class="grid grid-cols-7 gap-2"></div>
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-3">Horário Disponível</label>
+                    <div id="availableSlots" class="grid grid-cols-3 md:grid-cols-4 gap-2">
+                        <div class="col-span-3 md:col-span-4 text-center py-8 text-gray-500">
+                            Selecione um dia acima
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="prevStep(2)" class="mt-6 text-gray-600 hover:text-gray-900">← Voltar</button>
+            </div>
+
+            <!-- Step 4: Dados do Cliente -->
+            <div id="step4" class="hidden bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">Seus Dados</h2>
+                
+                <form id="clientForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nome Completo *</label>
+                        <input type="text" id="clientName" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">WhatsApp *</label>
+                        <input type="tel" id="clientWhatsapp" required placeholder="(11) 99999-9999" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500">
+                    </div>
+
+                    <!-- Resumo do Agendamento -->
+                    <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+                        <h3 class="font-semibold text-gray-900 mb-3">Resumo do Agendamento:</h3>
+                        <div class="space-y-2 text-sm text-gray-600">
+                            <p><strong>Profissional:</strong> <span id="summaryProfessional"></span></p>
+                            <p><strong>Serviço:</strong> <span id="summaryService"></span></p>
+                            <p><strong>Data:</strong> <span id="summaryDate"></span></p>
+                            <p><strong>Horário:</strong> <span id="summaryTime"></span></p>
+                            <p><strong>Duração:</strong> <span id="summaryDuration"></span></p>
+                            <p class="text-lg font-bold text-red-600"><strong>Valor:</strong> <span id="summaryPrice"></span></p>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-3">
+                        <button type="button" onclick="prevStep(3)" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
+                            ← Voltar
+                        </button>
+                        <button type="submit" class="flex-1 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium">
+                            ✓ Confirmar Agendamento
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Confirmação -->
+            <div id="stepConfirmation" class="hidden bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
+                <div class="text-6xl mb-4">✅</div>
+                <h2 class="text-2xl font-bold text-gray-900 mb-3">Agendamento Confirmado!</h2>
+                <p class="text-gray-600 mb-6">Você receberá uma confirmação via WhatsApp em breve.</p>
+                <button onclick="location.reload()" class="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700">
+                    Fazer Novo Agendamento
+                </button>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://kxdmigytkedpahccfraa.supabase.co'
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt4ZG1pZ3l0a2VkcGFoY2NmcmFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgxNDkxMjAsImV4cCI6MjA4MzcyNTEyMH0.-QQCRguA4oPqM3p4Mpq7JB8XEmhdj5VlT62K_TS2q4o'
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+
+        let tenant = null
+        let selectedData = {
+            professional: null,
+            service: null,
+            date: null,
+            time: null
+        }
+
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr + 'T00:00:00')
+            return date.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' })
+        }
+
+        // Pegar slug da URL
+        function getSlugFromURL() {
+            const params = new URLSearchParams(window.location.search)
+            return params.get('slug')
+        }
+
+        async function loadTenant() {
+            const slug = getSlugFromURL()
+            
+            if (!slug) {
+                alert('Link inválido! Slug não encontrado.')
+                return
+            }
+
+            const { data, error } = await supabase
+                .from('tenants')
+                .select('*')
+                .eq('slug', slug)
+                .eq('status', 'ativo')
+                .single()
+
+            if (error || !data) {
+                alert('Salão não encontrado ou inativo!')
+                return
+            }
+
+            tenant = data
+            console.log('Tenant carregado:', tenant)
+            console.log('Cover image:', tenant.cover_image)
+            
+            document.getElementById('salonName').textContent = tenant.nome_salao
+            document.getElementById('salonContact').textContent = tenant.whatsapp ? `📱 ${tenant.whatsapp}` : ''
+            
+            // Montar endereço
+            const enderecoCompleto = [tenant.endereco, tenant.numero, tenant.complemento]
+                .filter(Boolean)
+                .join(', ')
+            if (enderecoCompleto) {
+                document.getElementById('salonAddress').textContent = `📍 ${enderecoCompleto}`
+            }
+            
+            document.title = `Agendamento - ${tenant.nome_salao}`
+
+            // Se existir uma capa configurada, usar como foto de perfil
+            if (tenant.cover_image) {
+                try {
+                    console.log('Tentando carregar foto de:', tenant.cover_image)
+                    
+                    // Montar URL pública diretamente
+                    const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/salon-images/${tenant.cover_image}`
+                    
+                    console.log('URL montada:', publicUrl)
+                    
+                    const logo = document.getElementById('salonLogo')
+                    const placeholder = document.getElementById('salonLogoPlaceholder')
+                    logo.src = publicUrl
+                    logo.classList.remove('hidden')
+                    placeholder.classList.add('hidden')
+                    console.log('Foto carregada com sucesso!')
+                } catch (err) {
+                    console.warn('Não foi possível carregar a foto:', err)
+                }
+            } else {
+                console.warn('Nenhuma cover_image definida no tenant')
+            }
+
+            loadProfessionals()
+        }
+
+        async function loadProfessionals() {
+            const { data, error } = await supabase
+                .from('professionals')
+                .select('*')
+                .eq('tenant_id', tenant.id)
+                .eq('ativo', true)
+                .order('ordem', { ascending: true })
+
+            if (error) {
+                console.error('Erro:', error)
+                return
+            }
+
+            const list = document.getElementById('professionalsList')
+            
+            if (data.length === 0) {
+                list.innerHTML = '<p class="text-center text-gray-600">Nenhum profissional disponível no momento.</p>'
+                return
+            }
+
+            list.innerHTML = data.map(prof => {
+                const photoUrl = prof.photo_url ? `${SUPABASE_URL}/storage/v1/object/public/salon-images/${prof.photo_url}` : ''
+                return `
+                <button onclick='selectProfessional(${JSON.stringify(prof).replace(/'/g, "&apos;")})' class="p-6 border-2 border-gray-200 rounded-lg hover:border-red-500 hover:bg-red-50 transition-all text-left">
+                    <div class="flex items-center gap-4">
+                        ${ prof.photo_url ? (`<img src="${photoUrl}" class="w-16 h-16 rounded-full object-cover border-2 border-red-200">`) : (`<div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center text-3xl">👤</div>`) }
+                        <div>
+                            <h3 class="font-semibold text-gray-900 text-lg">${prof.nome}</h3>
+                            ${prof.bio ? `<p class="text-sm text-gray-600 mt-1">${prof.bio}</p>` : ''}
+                        </div>
+                    </div>
+                </button>
+            `}).join('')
+        }
+
+        async function selectProfessional(professional) {
+            selectedData.professional = professional
+            document.getElementById('summaryProfessional').textContent = professional.nome
+            
+            // Carregar serviços deste profissional
+            const { data, error } = await supabase
+                .from('professional_services')
+                .select(`
+                    services (*)
+                `)
+                .eq('professional_id', professional.id)
+
+            let services = []
+            if (data && data.length > 0) {
+                services = data.map(ps => ps.services).filter(s => s.ativo)
+            } else {
+                // Se profissional não tem serviços específicos, mostrar todos
+                const { data: allServices } = await supabase
+                    .from('services')
+                    .select('*')
+                    .eq('tenant_id', tenant.id)
+                    .eq('ativo', true)
+                services = allServices || []
+            }
+
+            const list = document.getElementById('servicesList')
+            
+            if (services.length === 0) {
+                list.innerHTML = '<p class="text-center text-gray-600">Nenhum serviço disponível.</p>'
+            } else {
+                // Agrupar por categoria
+                const grouped = {}
+                services.forEach(s => {
+                    const cat = s.categoria || 'Outros'
+                    if (!grouped[cat]) grouped[cat] = []
+                    grouped[cat].push(s)
+                })
+
+                list.innerHTML = Object.keys(grouped).map(categoria => `
+                    <div class="mb-6">
+                        <h3 class="font-semibold text-gray-900 mb-3">${categoria}</h3>
+                        <div class="space-y-2">
+                            ${grouped[categoria].map(s => `
+                                <button onclick='selectService(${JSON.stringify(s).replace(/'/g, "&apos;")})' class="w-full p-4 border-2 border-gray-200 rounded-lg hover:border-red-500 hover:bg-red-50 transition-all text-left">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <h4 class="font-semibold text-gray-900">${s.nome}</h4>
+                                            ${s.descricao ? `<p class="text-sm text-gray-600 mt-1">${s.descricao}</p>` : ''}
+                                            <p class="text-sm text-gray-600 mt-1">⏱️ ${s.duracao_minutos} minutos</p>
+                                        </div>
+                                        <div class="text-right">
+                                            <p class="text-xl font-bold text-red-600">${formatCurrency(s.preco)}</p>
+                                        </div>
+                                    </div>
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+                `).join('')
+            }
+
+            goToStep(2)
+        }
+
+        function selectService(service) {
+            selectedData.service = service
+            document.getElementById('summaryService').textContent = service.nome
+            document.getElementById('summaryDuration').textContent = service.duracao_minutos + ' minutos'
+            document.getElementById('summaryPrice').textContent = formatCurrency(service.preco)
+
+            // Resetar a janela para a semana atual e gerar seletor de dias
+            currentStartDate = new Date()
+            generateDaySelector()
+
+            goToStep(3)
+        }
+
+        // Data de início usada para navegação entre semanas
+        let currentStartDate = new Date()
+
+        function changeWeek(offsetDays) {
+            // Mover a janela de dias pelo número de dias informado (ex.: -7 ou +7)
+            currentStartDate = new Date(currentStartDate)
+            currentStartDate.setDate(currentStartDate.getDate() + offsetDays)
+
+            // Limpar seleção atual e lista de horários
+            selectedData.date = null
+            document.getElementById('summaryDate').textContent = ''
+            document.getElementById('availableSlots').innerHTML = '<div class="col-span-3 md:col-span-4 text-center py-8 text-gray-500">Selecione um dia acima</div>'
+
+            generateDaySelector()
+        }
+
+        // Inicializar seletor de data (botão + input)
+        (function initDatePicker(){
+            const datePicker = document.getElementById('datePicker')
+            const openDatePickerBtn = document.getElementById('openDatePickerBtn')
+            if (!datePicker || !openDatePickerBtn) return
+
+            // Definir mínimo para hoje para evitar datas passadas
+            const todayIso = new Date().toISOString().split('T')[0]
+            datePicker.min = todayIso
+
+            const openPicker = () => {
+                // Preferir API moderna
+                if (typeof datePicker.showPicker === 'function') {
+                    datePicker.showPicker()
+                    return
+                }
+
+                // Fallback: temporariamente tornar visível e clicar
+                datePicker.classList.remove('sr-only')
+                datePicker.style.position = 'absolute'
+                datePicker.style.left = '-9999px'
+                datePicker.focus()
+                try {
+                    datePicker.click()
+                } catch (err) {
+                    // alguns navegadores podem bloquear programmatic click
+                    console.warn('Falha ao abrir picker via click automático', err)
+                }
+
+                setTimeout(() => {
+                    datePicker.classList.add('sr-only')
+                    datePicker.style.position = ''
+                    datePicker.style.left = ''
+                }, 200)
+            }
+
+            openDatePickerBtn.addEventListener('click', (e) => {
+                e.preventDefault()
+                openCalendarModal()
+            })
+
+            datePicker.addEventListener('change', (e) => {
+                const picked = e.target.value
+                if (!picked) return
+
+                const d = new Date(picked + 'T00:00:00')
+                const weekStart = new Date(d)
+                weekStart.setDate(d.getDate() - d.getDay()) // início da semana (domingo)
+
+                currentStartDate = weekStart
+                selectedData.date = null
+                document.getElementById('summaryDate').textContent = ''
+                document.getElementById('availableSlots').innerHTML = '<div class="col-span-3 md:col-span-4 text-center py-8 text-gray-500">Selecione um dia acima</div>'
+
+                generateDaySelector()
+
+                // Selecionar automaticamente o dia indicado, se visível
+                setTimeout(() => {
+                    const dateStr = picked
+                    const btn = document.getElementById('day-' + dateStr)
+                    if (btn) btn.click()
+                }, 0)
+            })
+        })();
+
+        // Calendar modal logic
+        (function initCalendarModal(){
+            const modal = document.getElementById('calendarModal')
+            const overlay = document.getElementById('calendarOverlay')
+            const panel = document.getElementById('calendarPanel')
+            const grid = document.getElementById('calendarGrid')
+            const title = document.getElementById('calendarTitle')
+            const prevBtn = document.getElementById('calendarPrevMonth')
+            const nextBtn = document.getElementById('calendarNextMonth')
+            const cancelBtn = document.getElementById('calendarCancel')
+            const todayBtn = document.getElementById('calendarSelectToday')
+
+            if (!modal || !panel || !grid) return
+
+            let viewYear, viewMonth // month: 0-11
+
+            function formatMonthYear(y, m){
+                const d = new Date(y, m, 1)
+                return d.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+            }
+
+            function openCalendarModal(){
+                // iniciar no mês do selectedData.date ou currentStartDate
+                const base = selectedData.date ? new Date(selectedData.date + 'T00:00:00') : new Date(currentStartDate)
+                viewYear = base.getFullYear()
+                viewMonth = base.getMonth()
+
+                renderCalendar(viewYear, viewMonth)
+
+                modal.classList.remove('hidden')
+                modal.setAttribute('aria-hidden', 'false')
+                // animação: mostrar overlay e painel
+                overlay.classList.remove('opacity-0')
+                overlay.classList.add('opacity-100')
+                panel.classList.remove('opacity-0', 'scale-95')
+                panel.classList.add('opacity-100', 'scale-100')
+
+                // foco útil
+                setTimeout(() => panel.querySelector('button:not([disabled])')?.focus(), 150)
+
+                // adicionar listener ESC
+                document.addEventListener('keydown', handleKeydown)
+            }
+
+            function closeCalendarModal(){
+                // animação de saída
+                overlay.classList.remove('opacity-100')
+                overlay.classList.add('opacity-0')
+                panel.classList.remove('opacity-100', 'scale-100')
+                panel.classList.add('opacity-0', 'scale-95')
+
+                // remover após transição
+                setTimeout(() => {
+                    modal.classList.add('hidden')
+                    modal.setAttribute('aria-hidden', 'true')
+                }, 180)
+
+                document.removeEventListener('keydown', handleKeydown)
+            }
+
+            function handleKeydown(e){
+                if (e.key === 'Escape') closeCalendarModal()
+            }
+
+            function renderCalendar(y, m){
+                title.textContent = formatMonthYear(y, m)
+                grid.innerHTML = ''
+
+                const first = new Date(y, m, 1)
+                const startDay = first.getDay() // 0..6
+                const daysInMonth = new Date(y, m+1, 0).getDate()
+
+                // Fill empty cells before the first day
+                for (let i = 0; i < startDay; i++){
+                    const empty = document.createElement('div')
+                    empty.className = 'h-10'
+                    grid.appendChild(empty)
+                }
+
+                const todayStr = new Date().toISOString().split('T')[0]
+                const minStr = document.getElementById('datePicker').min
+
+                for (let d = 1; d <= daysInMonth; d++){
+                    const dateObj = new Date(y, m, d)
+                    const iso = dateObj.toISOString().split('T')[0]
+                    const btn = document.createElement('button')
+                    btn.type = 'button'
+                    btn.className = 'h-10 rounded-md transition focus:outline-none'
+
+                    const isPast = iso < minStr
+                    const isToday = iso === todayStr
+
+                    if (isPast){
+                        btn.classList.add('text-gray-400')
+                        btn.disabled = true
+                        btn.title = 'Data indisponível'
+                    } else {
+                        btn.classList.add('bg-white', 'hover:bg-red-50', 'border', 'border-gray-100')
+                    }
+
+                    if (isToday){
+                        btn.classList.add('ring-2', 'ring-red-200')
+                    }
+
+                    btn.textContent = d
+                    btn.addEventListener('click', () => {
+                        // Ao clicar, ajustar semana e selecionar dia
+                        const picked = iso
+                        const dObj = new Date(picked + 'T00:00:00')
+                        const weekStart = new Date(dObj)
+                        weekStart.setDate(dObj.getDate() - dObj.getDay())
+
+                        currentStartDate = weekStart
+                        selectedData.date = null
+                        document.getElementById('summaryDate').textContent = ''
+                        document.getElementById('availableSlots').innerHTML = '<div class="col-span-3 md:col-span-4 text-center py-8 text-gray-500">Selecione um dia acima</div>'
+
+                        generateDaySelector()
+
+                        // selecionar o dia clicado se visível
+                        setTimeout(() => {
+                            const btnDay = document.getElementById('day-' + picked)
+                            if (btnDay) btnDay.click()
+                        }, 0)
+
+                        closeCalendarModal()
+                    })
+
+                    grid.appendChild(btn)
+                }
+            }
+
+            // handlers
+            prevBtn.addEventListener('click', () => { viewMonth--; if (viewMonth < 0){ viewMonth = 11; viewYear-- } renderCalendar(viewYear, viewMonth) })
+            nextBtn.addEventListener('click', () => { viewMonth++; if (viewMonth > 11){ viewMonth = 0; viewYear++ } renderCalendar(viewYear, viewMonth) })
+            cancelBtn.addEventListener('click', closeCalendarModal)
+            todayBtn.addEventListener('click', () => {
+                const t = new Date()
+                const iso = t.toISOString().split('T')[0]
+                // selecionar hoje
+                const dObj = new Date(iso + 'T00:00:00')
+                const weekStart = new Date(dObj); weekStart.setDate(dObj.getDate() - dObj.getDay())
+                currentStartDate = weekStart
+                generateDaySelector()
+                setTimeout(() => document.getElementById('day-' + iso)?.click(), 0)
+                closeCalendarModal()
+            })
+
+            // fechar ao clicar no overlay
+            overlay.addEventListener('click', closeCalendarModal)
+
+            // expor openCalendarModal globalmente para uso do botão
+            window.openCalendarModal = openCalendarModal
+            window.closeCalendarModal = closeCalendarModal
+        })();
+
+        function generateDaySelector() {
+            const daySelector = document.getElementById('daySelector')
+            const today = new Date()
+            const days = []
+
+            const diasSemana = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB']
+            const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
+
+            // Gerar 7 dias a partir de currentStartDate
+            for (let i = 0; i < 7; i++) {
+                const date = new Date(currentStartDate)
+                date.setDate(currentStartDate.getDate() + i)
+
+                const dayOfWeek = diasSemana[date.getDay()]
+                const dayOfMonth = date.getDate()
+                const month = meses[date.getMonth()]
+                const dateStr = date.toISOString().split('T')[0]
+
+                const isToday = dateStr === today.toISOString().split('T')[0]
+                const isSelected = selectedData.date === dateStr
+
+                days.push({
+                    dayOfWeek,
+                    dayOfMonth,
+                    month,
+                    dateStr,
+                    isToday,
+                    isSelected
+                })
+            }
+
+            daySelector.innerHTML = days.map(day => `
+                <button
+                    type="button"
+                    onclick="selectDay('${day.dateStr}')"
+                    class="flex flex-col items-center justify-center p-3 border-2 rounded-lg hover:border-red-500 hover:bg-red-50 transition-all ${day.isSelected ? 'border-red-600 bg-red-50' : 'border-gray-300'}"
+                    id="day-${day.dateStr}"
+                >
+                    <span class="text-xs font-medium text-gray-600 mb-1">${day.dayOfWeek}</span>
+                    <span class="text-2xl font-bold text-gray-900">${day.dayOfMonth}</span>
+                    <span class="text-xs text-gray-500">${day.month}</span>
+                    ${day.isToday ? '<span class="text-xs text-red-600 font-medium mt-1">Hoje</span>' : ''}
+                </button>
+            `).join('')
+        }
+
+        function selectDay(dateStr) {
+            // Remove seleção anterior
+            document.querySelectorAll('#daySelector button').forEach(btn => {
+                btn.classList.remove('border-red-600', 'bg-red-50')
+                btn.classList.add('border-gray-300')
+            })
+
+            // Marca o dia selecionado
+            const selectedBtn = document.getElementById('day-' + dateStr)
+            selectedBtn.classList.remove('border-gray-300')
+            selectedBtn.classList.add('border-red-600', 'bg-red-50')
+
+            // Carrega os horários
+            loadAvailableSlotsForDate(dateStr)
+        }
+
+        async function loadAvailableSlotsForDate(date) {
+            if (!date) return
+
+            selectedData.date = date
+            document.getElementById('summaryDate').textContent = formatDate(date)
+
+            // Descobrir o dia da semana (0 = Domingo, 6 = Sábado)
+            const dateObj = new Date(date + 'T00:00:00')
+            const diaSemana = dateObj.getDay()
+
+            console.log('Data selecionada:', date, 'Dia da semana:', diaSemana)
+
+            // Buscar horário configurado para este profissional neste dia
+            const { data: schedule, error: scheduleError } = await supabase
+                .from('schedules')
+                .select('*')
+                .eq('professional_id', selectedData.professional.id)
+                .eq('dia_semana', diaSemana)
+                .eq('ativo', true)
+                .single()
+
+            console.log('Horário configurado:', schedule)
+
+            // Se não houver horário configurado ou não estiver ativo, não mostrar slots
+            if (!schedule || scheduleError) {
+                document.getElementById('availableSlots').innerHTML = `
+                    <div class="col-span-4 text-center py-8 text-gray-600">
+                        Este profissional não trabalha neste dia da semana.
+                    </div>
+                `
+                return
+            }
+
+            // Gerar horários disponíveis baseado na configuração
+            const slots = []
+            const [horaInicioH, horaInicioM] = schedule.hora_inicio.substring(0, 5).split(':').map(Number)
+            const [horaFimH, horaFimM] = schedule.hora_fim.substring(0, 5).split(':').map(Number)
+            const [intervaloInicioH, intervaloInicioM] = schedule.intervalo_inicio.substring(0, 5).split(':').map(Number)
+            const [intervaloFimH, intervaloFimM] = schedule.intervalo_fim.substring(0, 5).split(':').map(Number)
+
+            const inicioMinutos = horaInicioH * 60 + horaInicioM
+            const fimMinutos = horaFimH * 60 + horaFimM
+            const intervaloInicioMinutos = intervaloInicioH * 60 + intervaloInicioM
+            const intervaloFimMinutos = intervaloFimH * 60 + intervaloFimM
+
+            // Gerar slots de 30 em 30 minutos
+            for (let minutos = inicioMinutos; minutos < fimMinutos; minutos += 30) {
+                // Pular horário de intervalo
+                if (minutos >= intervaloInicioMinutos && minutos < intervaloFimMinutos) {
+                    continue
+                }
+
+                const h = Math.floor(minutos / 60)
+                const m = minutos % 60
+                slots.push(`${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`)
+            }
+
+            console.log('Slots gerados:', slots)
+
+            // Buscar horários já agendados
+            const { data: appointments, error: appointmentsError } = await supabase
+                .from('appointments')
+                .select('hora_inicio, hora_fim')
+                .eq('tenant_id', tenant.id)
+                .eq('professional_id', selectedData.professional.id)
+                .eq('data_agendamento', date)
+                .neq('status', 'cancelado')
+
+            console.log('Agendamentos encontrados:', appointments)
+
+            // Criar lista de horários bloqueados considerando duração
+            const bookedSlots = []
+            if (appointments) {
+                appointments.forEach(apt => {
+                    const horaInicio = apt.hora_inicio.substring(0, 5) // Garantir formato HH:MM
+                    bookedSlots.push(horaInicio)
+
+                    // Também bloquear horários que conflitam com a duração
+                    const [h, m] = horaInicio.split(':').map(Number)
+                    const duracao = selectedData.service.duracao_minutos
+
+                    // Verificar se algum slot cai dentro do período do agendamento
+                    slots.forEach(slot => {
+                        const [slotH, slotM] = slot.split(':').map(Number)
+                        const slotMinutes = slotH * 60 + slotM
+                        const inicioMinutes = h * 60 + m
+                        const fimMinutes = inicioMinutes + duracao
+
+                        // Se o slot cai dentro do período ocupado, bloquear
+                        if (slotMinutes >= inicioMinutes && slotMinutes < fimMinutes) {
+                            if (!bookedSlots.includes(slot)) {
+                                bookedSlots.push(slot)
+                            }
+                        }
+                    })
+                })
+            }
+
+            console.log('Horários bloqueados:', bookedSlots)
+
+            const slotsDiv = document.getElementById('availableSlots')
+
+            // Desabilitar horários que já passaram se a data selecionada for hoje
+            const todayStr = new Date().toISOString().split('T')[0]
+            const isToday = date === todayStr
+            const nowMinutes = (new Date()).getHours() * 60 + (new Date()).getMinutes()
+
+            slotsDiv.innerHTML = slots.map(slot => {
+                const [sh, sm] = slot.split(':').map(Number)
+                const slotMinutes = sh * 60 + sm
+                const isBooked = bookedSlots.includes(slot)
+                const isPast = isToday && (slotMinutes <= nowMinutes)
+
+                const disabled = isBooked || isPast
+                const title = isPast ? 'title="Horário já passou"' : (isBooked ? 'title="Indisponível"' : '')
+
+                return `
+                    <button
+                        onclick="selectTime('${slot}')"
+                        ${disabled ? 'disabled' : ''}
+                        ${title}
+                        class="px-4 py-2 border rounded-lg text-sm ${disabled ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'border-gray-300 hover:border-red-500 hover:bg-red-50'}"
+                    >
+                        ${slot}
+                    </button>
+                `
+            }).join('')
+        }
+
+        function selectTime(time) {
+            selectedData.time = time
+            document.getElementById('summaryTime').textContent = time
+            goToStep(4)
+        }
+
+        document.getElementById('clientForm').addEventListener('submit', async (e) => {
+            e.preventDefault()
+
+            // Calcular hora_fim baseado na duração do serviço
+            const [hours, minutes] = selectedData.time.split(':').map(Number)
+            const startTime = new Date()
+            startTime.setHours(hours, minutes, 0)
+            const endTime = new Date(startTime.getTime() + selectedData.service.duracao_minutos * 60000)
+            const hora_fim = `${endTime.getHours().toString().padStart(2, '0')}:${endTime.getMinutes().toString().padStart(2, '0')}`
+
+            const nomeCliente = document.getElementById('clientName').value
+            const whatsappCliente = document.getElementById('clientWhatsapp').value
+
+            const appointmentData = {
+                tenant_id: tenant.id,
+                professional_id: selectedData.professional.id,
+                service_id: selectedData.service.id,
+                data_agendamento: selectedData.date,
+                hora_inicio: selectedData.time,
+                hora_fim: hora_fim,
+                // Colunas antigas (obrigatórias)
+                cliente_nome: nomeCliente,
+                cliente_whatsapp: whatsappCliente,
+                cliente_email: null,
+                // Colunas novas (também obrigatórias)
+                nome_cliente: nomeCliente,
+                whatsapp_cliente: whatsappCliente,
+                email_cliente: null,
+                valor_servico: selectedData.service.preco,
+                status: 'pendente'
+            }
+
+            console.log('Dados do agendamento:', appointmentData)
+
+            const { data, error } = await supabase
+                .from('appointments')
+                .insert(appointmentData)
+                .select()
+
+            console.log('Resultado:', data)
+            console.log('Erro completo:', error)
+
+            if (error) {
+                alert('Erro ao criar agendamento: ' + error.message)
+                console.error('Detalhes do erro:', error)
+                return
+            }
+
+            // Mostrar confirmação
+            document.getElementById('step4').classList.add('hidden')
+            document.getElementById('stepConfirmation').classList.remove('hidden')
+        })
+
+        function goToStep(step) {
+            // Esconder todos
+            for (let i = 1; i <= 4; i++) {
+                document.getElementById('step' + i).classList.add('hidden')
+                document.getElementById('step' + i + 'Icon').classList.remove('bg-red-600')
+                document.getElementById('step' + i + 'Icon').classList.add('bg-gray-300')
+            }
+            
+            // Mostrar step atual
+            document.getElementById('step' + step).classList.remove('hidden')
+            document.getElementById('step' + step + 'Icon').classList.remove('bg-gray-300')
+            document.getElementById('step' + step + 'Icon').classList.add('bg-red-600')
+            
+            // Marcar steps anteriores como completos
+            for (let i = 1; i < step; i++) {
+                document.getElementById('step' + i + 'Icon').classList.add('bg-green-600')
+                document.getElementById('step' + i + 'Icon').classList.remove('bg-gray-300', 'bg-red-600')
+            }
+            
+            window.scrollTo(0, 0)
+        }
+
+        function prevStep(step) {
+            goToStep(step)
+        }
+
+        // Iniciar
+        loadTenant()
+    </script>
+</body>
+</html>

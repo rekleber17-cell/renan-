@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salon Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
+</head>
+<body class="bg-gray-50">
+    <div id="app" class="flex min-h-screen">
+        <!-- Sidebar -->
+        <div id="sidebar" class="w-64 bg-white border-r border-gray-200 sticky top-0 h-screen overflow-y-auto">
+            <div class="p-6 border-b border-gray-200">
+                <h1 class="text-2xl font-bold text-red-600">💈 Salon Panel</h1>
+            </div>
+
+            <nav id="navigation" class="p-4 space-y-1">
+                <!-- Itens de navegação serão inseridos aqui -->
+            </nav>
+
+            <div class="p-4 border-t border-gray-200 absolute bottom-0 w-64 bg-white">
+                <button onclick="logout()" class="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg w-full">
+                    🚪 Sair
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main id="content" class="flex-1 p-8">
+            <!-- O conteúdo das páginas será renderizado aqui -->
+        </main>
+    </div>
+
+    <!-- Scripts na ordem correta -->
+    <script src="js/config.js"></script>
+    <script src="js/router.js"></script>
+    <script src="js/pages/dashboard.js"></script>
+    <script src="js/pages/professionais.js"></script>
+    <script src="js/pages/services.js"></script>
+    <script src="js/pages/schedule.js"></script>
+    <script src="js/pages/clients.js"></script>
+    <script src="js/pages/settings.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

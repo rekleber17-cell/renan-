@@ -1,0 +1,63 @@
+# 🔧 CORREÇÃO: Agenda e Clientes
+
+## Problema Identificado ❌
+
+As páginas de **Agenda** (schedule) e **Clientes** (clients) não estão funcionando porque as tabelas correspondentes no banco de dados ainda não foram criadas.
+
+## O que foi feito ✅
+
+1. **Melhorado o tratamento de erros** nas duas páginas:
+   - Agora mostram mensagens claras quando há erro
+   - Indicam que a tabela pode não ter sido criada
+   - Mensagens amigáveis em vez de simplesmente não aparecer
+
+2. **Criado arquivo de setup** (`SETUP_TABELAS.md`):
+   - Instruções passo-a-passo para criar as tabelas
+   - SQL pronto para copiar/colar no Supabase
+   - Inclui políticas de segurança (RLS)
+   - Inclui índices para melhor performance
+
+## Como Resolver 🚀
+
+### Passo 1: Acesse o Supabase
+- Vá para: https://app.supabase.com
+- Faça login
+- Selecione seu projeto
+
+### Passo 2: Crie as Tabelas
+- Abra **SQL Editor**
+- Cole o SQL do arquivo `SETUP_TABELAS.md` ou `migrations.sql`
+- Clique em **Run**
+- Aguarde a confirmação ✅
+
+### Passo 3: Teste
+- Recarregue a aplicação (F5)
+- Clique em **Agenda** - deve funcionar agora!
+- Clique em **Clientes** - deve funcionar agora!
+
+## Arquivos Criados/Modificados
+
+- ✅ `SETUP_TABELAS.md` - Instruções completas de setup
+- ✅ `migrations.sql` - SQL para criar tabelas
+- ✅ `js/pages/schedule.js` - Melhor tratamento de erros
+- ✅ `js/pages/clients.js` - Melhor tratamento de erros
+
+## Mensagens de Erro Agora Mostram
+
+Quando a tabela não existe, você verá:
+- ❌ "Erro ao carregar agendamentos"
+- 📝 Descrição do erro
+- 💡 "A tabela de agendamentos pode ainda não ter sido criada"
+
+Isso ajuda a identificar o problema rapidamente!
+
+## Próximos Passos
+
+1. Crie as tabelas usando o SQL fornecido
+2. Recarregue a página
+3. Clique nos botões para criar clientes e agendamentos
+4. Tudo funcionará perfeitamente! ✨
+
+---
+
+**Não há problemas no código - é apenas setup do banco de dados!**

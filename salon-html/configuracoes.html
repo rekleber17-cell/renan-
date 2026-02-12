@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configurações - Salon Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <div class="w-64 bg-white border-r border-gray-200">
+            <div class="p-6 border-b border-gray-200">
+                <h1 class="text-2xl font-bold text-red-600">💈 Salon Panel</h1>
+            </div>
+            <nav class="p-4 space-y-1">
+                <a href="dashboard.html" class="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg">📊 Dashboard</a>
+                <a href="profissionais.html" class="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg">👥 Profissionais</a>
+                <a href="servicos.html" class="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg">✂️ Serviços</a>
+                <a href="agenda.html" class="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg">📅 Agenda</a>
+                <a href="clientes.html" class="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg">👤 Clientes</a>
+                <a href="configuracoes.html" class="flex items-center gap-3 px-4 py-3 bg-red-50 text-red-700 rounded-lg font-medium">⚙️ Configurações</a>
+            </nav>
+            <div class="p-4 border-t border-gray-200 absolute bottom-0 w-64">
+                <button onclick="logout()" class="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg w-full">🚪 Sair</button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-8">
+            <div class="mb-8">
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">Configurações do Salão</h1>
+                <p class="text-gray-600">Gerencie as informações do seu estabelecimento</p>
+            </div>
+
+            <!-- Formulário de Configurações -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+                <div class="p-6 border-b border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-900">Informações Básicas</h3>
+                </div>
+                <form id="configForm" class="p-6 space-y-6">
+                    <!-- Nome do Salão -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nome do Salão *</label>
+                        <input type="text" id="nome_salao" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500">
+                    </div>
+
+                    <!-- Slug (URL) -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Slug (URL de Agendamento) *
+                            <span class="text-xs text-gray-500 font-normal ml-2">Apenas letras minúsculas, números e hífens</span>
+                        </label>
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm text-gray-600">/agendamento.html?slug=</span>
+                            <input type="text" id="slug" required pattern="[a-z0-9-]+" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500">
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1" id="slugWarning"></p>
+                    </div>
+
+                    <!-- Foto de Capa -->
+                    <div class="border-t border-gray-200 pt-6 mt-6">
+                        <h3 class="text-md font-semibold text-gray-900 mb-4">Imagem de Capa</h3>
+                        <p class="text-sm text-gray-600 mb-4">Esta imagem aparecerá no topo da página de agendamento. Recomendamos uma imagem com proporção 16:9 (ex: 1920x1080px)</p>
+
+                        <div class="space-y-4">
+                            <!-- Preview da Imagem -->
+                            <div class="relative">
+                                <div id="coverPreviewContainer" class="hidden">
+                                    <img id="coverPreview" src="" alt="Preview da capa" class="w-full h-64 object-cover rounded-lg border-2 border-gray-300">
+                                    <button type="button" onclick="removeCoverImage()" class="absolute top-3 right-3 bg-red-600 hover:bg-red-700 text-white rounded-full w-10 h-10 flex items-center justify-center shadow-lg transition">
+                                        <span class="text-xl">✕</span>
+                                    </button>
+                                </div>
+
+                                <!-- Placeholder -->
+                                <div id="coverPlaceholder" class="w-full h-64 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center bg-gray-50 hover:bg-gray-100 transition cursor-pointer" onclick="document.getElementById('coverInput').click()">
+                                    <svg class="w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                    </svg>
+                                    <p class="text-gray-600 font-medium">Clique para adicionar uma imagem de capa</p>
+                                    <p class="text-sm text-gray-500 mt-2">JPG, PNG ou WEBP • Máximo 8 MB</p>
+                                </div>
+                            </div>
+
+                            <!-- Input de Arquivo (oculto) -->
+                            <input type="file" id="coverInput" accept="image/jpeg,image/png,image/webp" class="hidden" />
+
+                            <!-- Botões de Ação -->
+                            <div id="coverActions" class="hidden flex gap-3">
+                                <button type="button" onclick="document.getElementById('coverInput').click()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 font-medium">
+                                    📷 Alterar Imagem
+                                </button>
+                                <button type="button" onclick="removeCoverImage()" class="px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg font-medium">
+                                    🗑️ Remover
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contatos -->
+                    <div class="border-t border-gray-200 pt-6 mt-6">
+                        <h3 class="text-md font-semibold text-gray-900 mb-4">Informações de Contato</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Telefone -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Telefone</label>
+                                <input type="tel" id="telefone" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500">
+                            </div>
+
+                            <!-- WhatsApp -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">WhatsApp</label>
+                                <input type="tel" id="whatsapp" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500">
+                            </div>
+
+                            <!-- Email -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                <input type="email" id="email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500">
+                            </div>
+
+                            <!-- CEP -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">CEP</label>
+                                <input type="text" id="cep" maxlength="9" placeholder="00000-000" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Endereço -->
+                    <div class="border-t border-gray-200 pt-6 mt-6">
+                        <h3 class="text-md font-semibold text-gray-900 mb-4">Endereço</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Logradouro</label>
+                                <input type="text" id="endereco" placeholder="Rua, Avenida, etc" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500">
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <!-- Número -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Número</label>
+                                    <input type="text" id="numero" placeholder="123" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500">
+                                </div>
+
+                                <!-- Complemento -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Complemento</label>
+                                    <input type="text" id="complemento" placeholder="Apto, Sala, etc" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500">
+                                </div>
+
+                                <!-- Bairro -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Bairro</label>
+                                    <input type="text" id="bairro" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <!-- Cidade -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Cidade</label>
+                                    <input type="text" id="cidade" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500">
+                                </div>
+
+                                <!-- Estado -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+                                    <select id="estado" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500">
+                                        <option value="">Selecione</option>
+                                <option value="AC">Acre</option>
+                                <option value="AL">Alagoas</option>
+                                <option value="AP">Amapá</option>
+                                <option value="AM">Amazonas</option>
+                                <option value="BA">Bahia</option>
+                                <option value="CE">Ceará</option>
+                                <option value="DF">Distrito Federal</option>
+                                <option value="ES">Espírito Santo</option>
+                                <option value="GO">Goiás</option>
+                                <option value="MA">Maranhão</option>
+                                <option value="MT">Mato Grosso</option>
+                                <option value="MS">Mato Grosso do Sul</option>
+                                <option value="MG">Minas Gerais</option>
+                                <option value="PA">Pará</option>
+                                <option value="PB">Paraíba</option>
+                                <option value="PR">Paraná</option>
+                                <option value="PE">Pernambuco</option>
+                                <option value="PI">Piauí</option>
+                                <option value="RJ">Rio de Janeiro</option>
+                                <option value="RN">Rio Grande do Norte</option>
+                                <option value="RS">Rio Grande do Sul</option>
+                                <option value="RO">Rondônia</option>
+                                <option value="RR">Roraima</option>
+                                <option value="SC">Santa Catarina</option>
+                                <option value="SP">São Paulo</option>
+                                <option value="SE">Sergipe</option>
+                                <option value="TO">Tocantins</option>
+                            </select>
+                        </div>
+                    </div>
+                        </div>
+                    </div>
+
+                    <!-- Botão Salvar -->
+                    <div class="flex gap-3 pt-4">
+                        <button type="submit" class="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 font-medium">
+                            Salvar Configurações
+                        </button>
+                        <button type="button" onclick="loadTenantData()" class="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300">
+                            Cancelar
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Link de Agendamento -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 mt-6">
+                <div class="p-6 border-b border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-900">Link de Agendamento Público</h3>
+                </div>
+                <div class="p-6">
+                    <p class="text-sm text-gray-600 mb-3">
+                        Compartilhe este link com seus clientes para que eles possam fazer agendamentos online:
+                    </p>
+                    <div class="bg-gray-100 p-4 rounded-lg flex items-center gap-3">
+                        <code class="text-sm break-all flex-1" id="publicLink">Carregando...</code>
+                        <button onclick="copyLink()" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 text-sm whitespace-nowrap">
+                            Copiar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
+    <script>
+        const SUPABASE_URL = 'https://kxdmigytkedpahccfraa.supabase.co'
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt4ZG1pZ3l0a2VkcGFoY2NmcmFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgxNDkxMjAsImV4cCI6MjA4MzcyNTEyMH0.-QQCRguA4oPqM3p4Mpq7JB8XEmhdj5VlT62K_TS2q4o'
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+
+        // Funções auxiliares
+        async function checkAuth() {
+            const { data: { session } } = await supabase.auth.getSession()
+            if (!session) {
+                window.location.href = 'index.html'
+                return null
+            }
+            return session
+        }
+
+        async function getTenant(userId) {
+            const { data, error } = await supabase
+                .from('tenants')
+                .select('*')
+                .eq('user_id', userId)
+                .single()
+            return error ? null : data
+        }
+
+        function logout() {
+            supabase.auth.signOut()
+            window.location.href = 'index.html'
+        }
+    </script>
+
+    <script>
+        let tenant = null
+        let originalSlug = ''
+
+        async function loadTenantData() {
+            if (!tenant) return
+
+            document.getElementById('nome_salao').value = tenant.nome_salao || ''
+            document.getElementById('slug').value = tenant.slug || ''
+            originalSlug = tenant.slug || ''
+            document.getElementById('telefone').value = tenant.telefone || ''
+            document.getElementById('whatsapp').value = tenant.whatsapp || ''
+            document.getElementById('email').value = tenant.email || ''
+            document.getElementById('cep').value = tenant.cep || ''
+            document.getElementById('endereco').value = tenant.endereco || ''
+            document.getElementById('numero').value = tenant.numero || ''
+            document.getElementById('complemento').value = tenant.complemento || ''
+            document.getElementById('bairro').value = tenant.bairro || ''
+            document.getElementById('cidade').value = tenant.cidade || ''
+            document.getElementById('estado').value = tenant.estado || ''
+
+            // Mostrar preview da capa, se existir
+            updateCoverPreview()
+
+            updatePublicLink()
+        }
+
+        function updateCoverPreview() {
+            const coverPreview = document.getElementById('coverPreview')
+            const coverPreviewContainer = document.getElementById('coverPreviewContainer')
+            const coverPlaceholder = document.getElementById('coverPlaceholder')
+            const coverActions = document.getElementById('coverActions')
+
+            if (tenant.cover_image || window._coverFile) {
+                if (tenant.cover_image && !window._coverFile) {
+                    const { data: urlData } = supabase.storage.from('salon-images').getPublicUrl(tenant.cover_image)
+                    const publicUrl = urlData?.publicUrl || urlData?.publicURL || ''
+                    if (publicUrl) {
+                        coverPreview.src = publicUrl
+                    }
+                }
+                coverPreviewContainer.classList.remove('hidden')
+                coverPlaceholder.classList.add('hidden')
+                coverActions.classList.remove('hidden')
+            } else {
+                coverPreviewContainer.classList.add('hidden')
+                coverPlaceholder.classList.remove('hidden')
+                coverActions.classList.add('hidden')
+            }
+        }
+
+        function removeCoverImage() {
+            const coverPreview = document.getElementById('coverPreview')
+            const coverPreviewContainer = document.getElementById('coverPreviewContainer')
+            const coverPlaceholder = document.getElementById('coverPlaceholder')
+            const coverActions = document.getElementById('coverActions')
+            const coverInput = document.getElementById('coverInput')
+
+            // Limpar tudo
+            coverPreview.src = ''
+            coverInput.value = ''
+            window._coverFile = null
+            window._removeCover = true
+
+            // Atualizar UI imediatamente
+            coverPreviewContainer.classList.add('hidden')
+            coverPlaceholder.classList.remove('hidden')
+            coverActions.classList.add('hidden')
+        }
+
+        function updatePublicLink() {
+            const slug = document.getElementById('slug').value || tenant.slug
+            const link = `${window.location.origin}/agendamento.html?slug=${slug}`
+            document.getElementById('publicLink').textContent = link
+        }
+
+        function copyLink() {
+            const link = document.getElementById('publicLink').textContent
+            navigator.clipboard.writeText(link).then(() => {
+                alert('Link copiado para a área de transferência!')
+            })
+        }
+
+        // Validação do slug em tempo real
+        document.getElementById('slug').addEventListener('input', function(e) {
+            const slug = e.target.value
+            const validSlug = slug.toLowerCase().replace(/[^a-z0-9-]/g, '')
+
+            if (slug !== validSlug) {
+                e.target.value = validSlug
+                document.getElementById('slugWarning').textContent = 'Caracteres inválidos foram removidos'
+            } else {
+                document.getElementById('slugWarning').textContent = ''
+            }
+
+            updatePublicLink()
+        })
+
+        // Listener do input de cover
+        document.getElementById('coverInput').addEventListener('change', (e) => {
+            const file = e.target.files[0]
+            if (!file) return
+
+            const allowed = ['image/jpeg', 'image/png', 'image/webp']
+            const maxBytes = 8 * 1024 * 1024
+
+            if (!allowed.includes(file.type)) {
+                alert('Formato inválido. Use jpg, png ou webp.')
+                e.target.value = ''
+                return
+            }
+            if (file.size > maxBytes) {
+                alert('Arquivo muito grande. Máximo 8 MB.')
+                e.target.value = ''
+                return
+            }
+
+            const coverPreview = document.getElementById('coverPreview')
+            coverPreview.src = URL.createObjectURL(file)
+            window._coverFile = file
+            window._removeCover = false
+
+            updateCoverPreview()
+        })
+
+        // Formatação de CEP
+        document.getElementById('cep').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '')
+            if (value.length > 5) {
+                value = value.substring(0, 5) + '-' + value.substring(5, 8)
+            }
+            e.target.value = value
+        })
+
+        // Buscar endereço por CEP
+        document.getElementById('cep').addEventListener('blur', async function(e) {
+            const cep = e.target.value.replace(/\D/g, '')
+
+            if (cep.length === 8) {
+                try {
+                    const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`)
+                    const data = await response.json()
+
+                    if (!data.erro) {
+                        document.getElementById('endereco').value = data.logradouro || ''
+                        document.getElementById('bairro').value = data.bairro || ''
+                        document.getElementById('cidade').value = data.localidade || ''
+                        document.getElementById('estado').value = data.uf || ''
+                        document.getElementById('numero').focus()
+                    }
+                } catch (error) {
+                    console.error('Erro ao buscar CEP:', error)
+                }
+            }
+        })
+
+        document.getElementById('configForm').addEventListener('submit', async (e) => {
+            e.preventDefault()
+
+            const newSlug = document.getElementById('slug').value
+
+            // Verificar se o slug mudou e se já está em uso
+            if (newSlug !== originalSlug) {
+                const { data: existing } = await supabase
+                    .from('tenants')
+                    .select('id')
+                    .eq('slug', newSlug)
+                    .neq('id', tenant.id)
+                    .single()
+
+                if (existing) {
+                    alert('Este slug já está em uso. Por favor, escolha outro.')
+                    return
+                }
+            }
+
+            const data = {
+                nome_salao: document.getElementById('nome_salao').value,
+                slug: newSlug,
+                telefone: document.getElementById('telefone').value || null,
+                whatsapp: document.getElementById('whatsapp').value || null,
+                email: document.getElementById('email').value || null,
+                cep: document.getElementById('cep').value || null,
+                endereco: document.getElementById('endereco').value || null,
+                numero: document.getElementById('numero').value || null,
+                complemento: document.getElementById('complemento').value || null,
+                bairro: document.getElementById('bairro').value || null,
+                cidade: document.getElementById('cidade').value || null,
+                estado: document.getElementById('estado').value || null
+            }
+
+            // Se solicitou remover a capa
+            if (window._removeCover) {
+                data.cover_image = null
+            }
+
+            // Se selecionou nova capa, enviar para o bucket primeiro
+            const coverFile = window._coverFile
+            if (coverFile && !window._removeCover) {
+                try {
+                    const ext = coverFile.name.split('.').pop()
+                    const filePath = `tenants/${tenant.id}/cover-${Date.now()}.${ext}`
+                    
+                    console.log('Enviando arquivo para:', filePath)
+                    
+                    const { data: uploadData, error: uploadError } = await supabase.storage
+                        .from('salon-images')
+                        .upload(filePath, coverFile, { 
+                            upsert: true,
+                            contentType: coverFile.type
+                        })
+                    
+                    console.log('Resposta upload:', { uploadData, uploadError })
+                    
+                    if (uploadError) {
+                        console.error('Upload error details:', uploadError)
+                        alert('Erro ao enviar imagem: ' + uploadError.message)
+                        return
+                    }
+                    
+                    if (!uploadData) {
+                        console.warn('Upload retornou vazio, mas sem erro. Prosseguindo...')
+                    }
+                    
+                    data.cover_image = filePath
+                    console.log('Arquivo será salvo com referência:', filePath)
+                } catch (err) {
+                    console.error('Erro upload capa:', err)
+                    alert('Erro ao enviar imagem: ' + err.message)
+                    return
+                }
+            }
+
+            const { error } = await supabase
+                .from('tenants')
+                .update(data)
+                .eq('id', tenant.id)
+
+            if (error) {
+                console.error('Erro ao atualizar:', error)
+                alert('Erro ao salvar: ' + error.message)
+                return
+            }
+
+            alert('Configurações salvas com sucesso!')
+
+            // Atualizar tenant local
+            tenant = { ...tenant, ...data }
+            originalSlug = newSlug
+            updatePublicLink()
+        })
+
+        async function init() {
+            const session = await checkAuth()
+            if (!session) return
+
+            tenant = await getTenant(session.user.id)
+            if (!tenant) {
+                alert('Salão não encontrado!')
+                logout()
+                return
+            }
+
+            loadTenantData()
+        }
+
+        init()
+    </script>
+</body>
+</html>

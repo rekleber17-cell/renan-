@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agendamento - Destaque do Corte</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+            min-height: 100vh;
+        }
+
+        .step-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+
+        .step-circle.active {
+            background: #dc2626;
+            color: white;
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+        }
+
+        .step-circle.completed {
+            background: #16a34a;
+            color: white;
+        }
+
+        .step-circle.inactive {
+            background: #e5e7eb;
+            color: #9ca3af;
+        }
+
+        .card-select {
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 3px solid transparent;
+        }
+
+        .card-select:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-select.selected {
+            border-color: #dc2626;
+            background: #fef2f2;
+            box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.1);
+        }
+
+        .professional-photo {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            flex-shrink: 0;
+        }
+
+        .btn-primary {
+            background: #dc2626;
+            color: white;
+            padding: 14px 32px;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #b91c1c;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(220, 38, 38, 0.3);
+        }
+
+        .btn-primary:disabled {
+            background: #d1d5db;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+            padding: 14px 32px;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #dc2626;
+            box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.1);
+        }
+
+        .time-slot {
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+            font-weight: 500;
+        }
+
+        .time-slot:hover:not(:disabled) {
+            border-color: #dc2626;
+            background: #fef2f2;
+        }
+
+        .time-slot.selected {
+            border-color: #dc2626;
+            background: #dc2626;
+            color: white;
+        }
+
+        .time-slot:disabled {
+            background: #f3f4f6;
+            color: #9ca3af;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .day-selector {
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+            min-width: 85px;
+            flex: 1 1 0;
+            max-width: 110px;
+        }
+
+        .day-selector:hover {
+            border-color: #dc2626;
+            background: #fef2f2;
+        }
+
+        .day-selector.selected {
+            border-color: #dc2626;
+            background: #fef2f2;
+            box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.1);
+        }
+
+        .day-selector.today {
+            border-color: #dc2626;
+            background: #fef2f2;
+        }
+
+        .success-animation {
+            animation: fadeInScale 0.5s ease;
+        }
+
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .loading {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        /* Calendar Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            animation: modalFadeIn 0.2s ease;
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .calendar-day:hover:not(.disabled):not(.selected) {
+            background: #fef2f2;
+            color: #dc2626;
+        }
+
+        .calendar-day.selected {
+            background: #dc2626;
+            color: white;
+        }
+
+        .calendar-day.today {
+            border: 2px solid #dc2626;
+        }
+
+        .calendar-day.disabled {
+            color: #d1d5db;
+            cursor: not-allowed;
+        }
+
+        .week-nav-btn {
+            padding: 8px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .week-nav-btn:hover {
+            border-color: #dc2626;
+            background: #fef2f2;
+        }
+
+        .week-nav-btn svg {
+            width: 20px;
+            height: 20px;
+            color: #374151;
+        }
+
+        @media (max-width: 640px) {
+            .day-selector {
+                min-width: 70px;
+                max-width: 90px;
+                padding: 10px 12px;
+            }
+            
+            .day-selector .text-2xl {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header com logo e dados da empresa -->
+    <div class="bg-gray-200 text-gray-900 p-8">
+        <div class="max-w-4xl mx-auto flex items-center justify-between">
+            <div class="flex-shrink-0 mr-8">
+                <div id="companyLogo" class="w-40 h-40 bg-white rounded-lg flex items-center justify-center overflow-hidden border-4 border-black">
+                    <span class="text-4xl">💈</span>
+                </div>
+            </div>
+            <div class="flex-1 min-w-0">
+                <h1 id="companyName" class="text-4xl font-bold mb-2">Seu Salão</h1>
+                <p id="companyPhone" class="text-lg mb-1">📞 <span id="phoneText">(11) 9954-80388</span></p>
+                <p id="companyAddress" class="text-lg">📍 <span id="addressText">Rua não cadastrada</span></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-4xl mx-auto px-6 py-8">
+        
+        <!-- Step Indicator - Outside Container -->
+        <div class="flex items-center justify-between mb-8">
+            <div class="flex-1 flex flex-col items-center">
+                <div id="step-indicator-1" class="step-circle active">1</div>
+                <p class="text-sm font-medium mt-2 text-gray-600">Profissional</p>
+            </div>
+            <div class="flex-1 h-1 bg-gray-200 mx-2"></div>
+            <div class="flex-1 flex flex-col items-center">
+                <div id="step-indicator-2" class="step-circle inactive">2</div>
+                <p class="text-sm font-medium mt-2 text-gray-600">Serviço</p>
+            </div>
+            <div class="flex-1 h-1 bg-gray-200 mx-2"></div>
+            <div class="flex-1 flex flex-col items-center">
+                <div id="step-indicator-3" class="step-circle inactive">3</div>
+                <p class="text-sm font-medium mt-2 text-gray-600">Data/Hora</p>
+            </div>
+            <div class="flex-1 h-1 bg-gray-200 mx-2"></div>
+            <div class="flex-1 flex flex-col items-center">
+                <div id="step-indicator-4" class="step-circle inactive">4</div>
+                <p class="text-sm font-medium mt-2 text-gray-600">Seus Dados</p>
+            </div>
+        </div>
+
+        <!-- Content Container -->
+        <div class="bg-white rounded-2xl shadow-xl p-8 md:p-12">
+
+            <form id="bookingForm">
+                <!-- Step 1: Professional -->
+                <div id="step-1" class="fade-in">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">Escolha o Profissional</h2>
+                    <div id="professionalsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <div class="text-center text-gray-500 py-8">Carregando profissionais...</div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Service -->
+                <div id="step-2" class="hidden">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">Escolha o Serviço</h2>
+                    <div id="servicesContainer" class="grid grid-cols-1 gap-4 mb-8">
+                        <div class="text-center text-gray-500 py-8">Carregando serviços...</div>
+                    </div>
+                    <div class="flex gap-4 justify-between mt-8">
+                        <button type="button" id="backToProfessional" class="btn-secondary">← Voltar</button>
+                    </div>
+                </div>
+
+                <!-- Step 3: Date/Time -->
+                <div id="step-3" class="hidden">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">Escolha Data e Horário</h2>
+                    
+                    <!-- Week Navigation -->
+                    <div class="mb-6">
+                        <div class="flex items-center gap-2 mb-3">
+                            <button type="button" onclick="changeWeek(-7)" class="week-nav-btn flex-shrink-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                                </svg>
+                            </button>
+                            
+                            <div class="flex-1 flex gap-2 overflow-x-auto pb-2 scrollbar-hide min-w-0" id="daySelector" style="scrollbar-width: none; -ms-overflow-style: none;">
+                                <!-- Days will be populated here -->
+                            </div>
+                            
+                            <button type="button" onclick="changeWeek(7)" class="week-nav-btn flex-shrink-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                </svg>
+                            </button>
+                        </div>
+                        
+                        <!-- Calendar button below -->
+                        <div class="flex justify-center">
+                            <button type="button" onclick="openCalendarModal()" class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border-2 border-gray-300 rounded-lg hover:border-red-600 hover:bg-red-50 transition">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-5 h-5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                Escolher outra data
+                            </button>
+                        </div>
+                    </div>
+
+                    <h3 class="text-lg font-semibold mb-4">Horário Disponível</h3>
+                    <div id="timeSlots" class="grid grid-cols-3 md:grid-cols-4 gap-3 mb-8">
+                        <div class="text-center text-gray-500 py-8 col-span-full">Selecione uma data</div>
+                    </div>
+
+                    <div class="flex gap-4 justify-between mt-8">
+                        <button type="button" id="backToService" class="btn-secondary">← Voltar</button>
+                    </div>
+                </div>
+
+                <!-- Step 4: Client Data -->
+                <div id="step-4" class="hidden">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">Seus Dados</h2>
+                    
+                    <div class="space-y-5 mb-8">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Nome Completo *</label>
+                            <input type="text" id="clientName" required class="input-field" placeholder="Digite seu nome completo">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">WhatsApp *</label>
+                            <input type="tel" id="clientWhatsapp" required class="input-field" placeholder="11999999999" maxlength="11">
+                            <p class="text-xs text-gray-500 mt-1">Apenas números (DDD + número)</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Email (opcional)</label>
+                            <input type="email" id="clientEmail" class="input-field" placeholder="seu@email.com">
+                        </div>
+                    </div>
+                    
+                    <!-- Booking Summary - MOVED TO BOTTOM -->
+                    <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 mb-8 border-2 border-green-300">
+                        <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-700" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
+                            </svg>
+                            Resumo do Agendamento
+                        </h3>
+                        <div id="bookingSummary" class="space-y-2 text-sm">
+                            <!-- Will be populated with booking details -->
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-4 justify-between mt-8">
+                        <button type="button" id="backToDate" class="btn-secondary">← Voltar</button>
+                        <button type="submit" id="submitBtn" class="btn-primary">Confirmar Agendamento ✓</button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Success Message -->
+            <div id="successMessage" class="hidden">
+                <div class="text-center py-12 success-animation">
+                    <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <svg class="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-900 mb-3">Agendamento Confirmado!</h3>
+                    <p class="text-gray-600 mb-6">Você receberá uma confirmação no WhatsApp em breve.</p>
+                    <button onclick="location.reload()" class="btn-primary">Fazer Novo Agendamento</button>
+                </div>
+            </div>
+
+            <!-- Error Message -->
+            <div id="errorMessage" class="hidden mt-6 p-5 bg-red-50 border-2 border-red-200 text-red-700 rounded-xl"></div>
+        </div>
+    </div>
+
+    <!-- Calendar Modal -->
+    <div id="calendarModal" class="modal-overlay hidden" onclick="closeCalendarModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-gray-900">Selecione uma Data</h3>
+                <button onclick="closeCalendarModal()" class="text-gray-400 hover:text-gray-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="flex items-center justify-between mb-4">
+                <button onclick="changeCalendarMonth(-1)" class="week-nav-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </button>
+                <h4 id="calendarMonthYear" class="text-lg font-semibold text-gray-900"></h4>
+                <button onclick="changeCalendarMonth(1)" class="week-nav-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="grid grid-cols-7 gap-2 mb-3 text-center text-xs font-semibold text-gray-600">
+                <div>DOM</div>
+                <div>SEG</div>
+                <div>TER</div>
+                <div>QUA</div>
+                <div>QUI</div>
+                <div>SEX</div>
+                <div>SAB</div>
+            </div>
+
+            <div id="calendarGrid" class="grid grid-cols-7 gap-2 mb-4">
+                <!-- Calendar days will be populated here -->
+            </div>
+
+            <div class="flex gap-3">
+                <button onclick="selectTodayFromCalendar()" class="flex-1 btn-secondary">Hoje</button>
+                <button onclick="closeCalendarModal()" class="flex-1 btn-primary">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://kxdmigytkedpahccfraa.supabase.co'
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt4ZG1pZ3l0a2VkcGFoY2NmcmFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgxNDkxMjAsImV4cCI6MjA4MzcyNTEyMH0.-QQCRguA4oPqM3p4Mpq7JB8XEmhdj5VlT62K_TS2q4o'
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+
+        let tenantId = null
+        let selectedProfessionalId = null
+        let selectedServiceId = null
+        let selectedDate = null
+        let selectedTime = null
+        let professionals = []
+        let services = []
+        let currentStep = 1
+        let bookedSlots = []
+        let currentWeekStart = new Date()
+        let calendarDate = new Date()
+
+        function updateStepIndicator(step) {
+            for (let i = 1; i <= 4; i++) {
+                const indicator = document.getElementById(`step-indicator-${i}`)
+                if (i < step) {
+                    indicator.className = 'step-circle completed'
+                } else if (i === step) {
+                    indicator.className = 'step-circle active'
+                } else {
+                    indicator.className = 'step-circle inactive'
+                }
+            }
+        }
+
+        function showStep(step) {
+            for (let i = 1; i <= 4; i++) {
+                const element = document.getElementById(`step-${i}`)
+                if (element) {
+                    element.classList.toggle('hidden', i !== step)
+                    if (i === step) {
+                        element.classList.add('fade-in')
+                    }
+                }
+            }
+            currentStep = step
+            updateStepIndicator(step)
+            
+            // Update booking summary when showing step 4
+            if (step === 4) {
+                updateBookingSummary()
+            }
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' })
+        }
+        
+        function updateBookingSummary() {
+            const professional = professionals.find(p => p.id === selectedProfessionalId)
+            const service = services.find(s => s.id === selectedServiceId)
+            
+            // Format date
+            const [year, month, day] = selectedDate.split('-')
+            const dateObj = new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
+            const dayNames = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']
+            const formattedDate = `${dayNames[dateObj.getDay()]}, ${day}/${month}/${year}`
+            
+            document.getElementById('bookingSummary').innerHTML = `
+                <div class="flex items-start gap-3 py-2">
+                    <span class="text-2xl flex-shrink-0">👤</span>
+                    <div class="flex-1">
+                        <span class="font-semibold text-gray-800 block">Profissional:</span>
+                        <span class="text-gray-900">${professional?.nome || '-'}</span>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3 py-2">
+                    <span class="text-2xl flex-shrink-0">✂️</span>
+                    <div class="flex-1">
+                        <span class="font-semibold text-gray-800 block">Serviço:</span>
+                        <span class="text-gray-900">${service?.nome || '-'}</span>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3 py-2">
+                    <span class="text-2xl flex-shrink-0">📅</span>
+                    <div class="flex-1">
+                        <span class="font-semibold text-gray-800 block">Data:</span>
+                        <span class="text-gray-900">${formattedDate}</span>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3 py-2">
+                    <span class="text-2xl flex-shrink-0">🕐</span>
+                    <div class="flex-1">
+                        <span class="font-semibold text-gray-800 block">Horário:</span>
+                        <span class="text-gray-900">${selectedTime}</span>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3 py-2">
+                    <span class="text-2xl flex-shrink-0">💰</span>
+                    <div class="flex-1">
+                        <span class="font-semibold text-gray-800 block">Valor:</span>
+                        <span class="text-green-700 font-bold text-lg">R$ ${service?.preco?.toFixed(2) || '0.00'}</span>
+                    </div>
+                </div>
+            `
+        }
+
+        async function init() {
+            try {
+                const { data: tenants } = await supabase
+                    .from('tenants')
+                    .select('*')
+                    .limit(1)
+
+                if (!tenants || tenants.length === 0) {
+                    throw new Error('Nenhum salão encontrado')
+                }
+
+                const tenant = tenants[0]
+                tenantId = tenant.id
+
+                document.getElementById('companyName').textContent = tenant.nome_salao || 'Destaque do Corte'
+                
+                // Montar endereço completo
+                const enderecoParts = []
+                if (tenant.endereco) enderecoParts.push(tenant.endereco)
+                if (tenant.numero) enderecoParts.push(tenant.numero)
+                if (tenant.complemento) enderecoParts.push(tenant.complemento)
+                if (tenant.bairro) enderecoParts.push(tenant.bairro)
+                if (tenant.cidade) enderecoParts.push(tenant.cidade)
+                if (tenant.estado) enderecoParts.push(tenant.estado)
+                
+                const enderecoCompleto = enderecoParts.length > 0 ? enderecoParts.join(', ') : 'Endereço não cadastrado'
+                document.getElementById('addressText').textContent = enderecoCompleto
+                
+                const telefoneDisplay = tenant.whatsapp || tenant.telefone || '11995480388'
+                document.getElementById('phoneText').textContent = telefoneDisplay
+
+                if (tenant.logo_url) {
+                    document.getElementById('companyLogo').innerHTML = `<img src="${tenant.logo_url}" class="w-full h-full object-cover" alt="Logo">`
+                }
+
+                const { data: profs } = await supabase
+                    .from('professionals')
+                    .select('id, nome, foto_url, photo_url')
+                    .eq('tenant_id', tenantId)
+                    .eq('ativo', true)
+
+                professionals = (profs || []).map(prof => {
+                    let url = ''
+                    if (prof.photo_url) {
+                        const result = supabase.storage.from('salon-images').getPublicUrl(prof.photo_url)
+                        url = result?.data?.publicUrl || result?.publicUrl || ''
+                    } else if (prof.foto_url) {
+                        url = prof.foto_url
+                    }
+                    return { ...prof, _publicPhotoUrl: url }
+                })
+                renderProfessionals()
+
+                const { data: svcs } = await supabase
+                    .from('services')
+                    .select('id, nome, preco, duracao_minutos')
+                    .eq('tenant_id', tenantId)
+                    .eq('ativo', true)
+
+                services = svcs || []
+                renderServices()
+
+            } catch (error) {
+                console.error('Erro ao inicializar:', error)
+                showError(error.message)
+            }
+        }
+
+        function renderProfessionals() {
+            const container = document.getElementById('professionalsContainer')
+            container.innerHTML = professionals.map(prof => `
+                <div onclick="selectProfessional('${prof.id}')" class="card-select bg-white rounded-xl p-5 shadow-md flex items-center gap-4">
+                    <div class="professional-photo flex items-center justify-center overflow-hidden">
+                        ${prof._publicPhotoUrl ? 
+                            `<img src="${prof._publicPhotoUrl}" class="w-full h-full object-cover" onerror="this.style.display='none'; this.parentElement.innerHTML='<span class=\\'text-3xl\\'>👤</span>'">` : 
+                            '<span class="text-3xl">👤</span>'}
+                    </div>
+                    <h3 class="font-semibold text-gray-900 text-lg flex-1">${prof.nome}</h3>
+                </div>
+            `).join('')
+        }
+
+        function renderServices() {
+            const container = document.getElementById('servicesContainer')
+            container.innerHTML = services.map(svc => `
+                <div onclick="selectService('${svc.id}')" class="card-select bg-white rounded-xl p-5 shadow-md col-span-full">
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1">
+                            <h3 class="font-bold text-gray-900 text-lg mb-1">${svc.nome}</h3>
+                            <p class="text-gray-500 text-sm">⏱️ ${svc.duracao_minutos} minutos</p>
+                        </div>
+                        <p class="text-red-600 font-bold text-2xl">${svc.preco ? 'R$ ' + svc.preco.toFixed(2) : 'R$ 0.00'}</p>
+                    </div>
+                </div>
+            `).join('')
+        }
+
+        function selectProfessional(id) {
+            selectedProfessionalId = id
+            document.querySelectorAll('#professionalsContainer .card-select').forEach(el => 
+                el.classList.remove('selected'))
+            event.currentTarget.classList.add('selected')
+            setTimeout(() => showStep(2), 300)
+        }
+
+        function selectService(id) {
+            selectedServiceId = id
+            document.querySelectorAll('#servicesContainer .card-select').forEach(el => 
+                el.classList.remove('selected'))
+            event.currentTarget.classList.add('selected')
+            setTimeout(() => {
+                showStep(3)
+                currentWeekStart = new Date()
+                renderDaySelector()
+            }, 300)
+        }
+
+        async function selectDate(date) {
+            selectedDate = date
+            
+            // Re-render to update visual state
+            renderDaySelector()
+            
+            await renderTimeSlots()
+        }
+
+        async function renderTimeSlots() {
+            const container = document.getElementById('timeSlots')
+            container.innerHTML = '<div class="text-center text-gray-500 py-4 col-span-full">Carregando horários...</div>'
+
+            // Get service duration
+            const service = services.find(s => s.id === selectedServiceId)
+            const duracao = service?.duracao_minutos || 30
+
+            // Get existing appointments for this professional and date
+            const { data: appointments } = await supabase
+                .from('appointments')
+                .select('hora_inicio, hora_fim')
+                .eq('tenant_id', tenantId)
+                .eq('professional_id', selectedProfessionalId)
+                .eq('data_agendamento', selectedDate)
+                .neq('status', 'cancelado')
+
+            // Generate time slots from 9:00 to 18:00
+            const slots = []
+            for (let hour = 9; hour < 18; hour++) {
+                slots.push(`${hour.toString().padStart(2, '0')}:00`)
+                slots.push(`${hour.toString().padStart(2, '0')}:30`)
+            }
+
+            // Mark occupied slots
+            bookedSlots = []
+            if (appointments && appointments.length > 0) {
+                appointments.forEach(apt => {
+                    const [hi, mi] = apt.hora_inicio.split(':').map(Number)
+                    const [hf, mf] = apt.hora_fim.split(':').map(Number)
+                    const inicioMinutes = hi * 60 + mi
+                    const fimMinutes = hf * 60 + mf
+
+                    slots.forEach(slot => {
+                        const [sh, sm] = slot.split(':').map(Number)
+                        const slotMinutes = sh * 60 + sm
+
+                        if (slotMinutes >= inicioMinutes && slotMinutes < fimMinutes) {
+                            if (!bookedSlots.includes(slot)) {
+                                bookedSlots.push(slot)
+                            }
+                        }
+                    })
+                })
+            }
+
+            // Check if past time (for today)
+            const todayStr = new Date().toISOString().split('T')[0]
+            const isToday = selectedDate === todayStr
+            const nowMinutes = new Date().getHours() * 60 + new Date().getMinutes()
+
+            container.innerHTML = slots.map(slot => {
+                const [sh, sm] = slot.split(':').map(Number)
+                const slotMinutes = sh * 60 + sm
+                const isBooked = bookedSlots.includes(slot)
+                const isPast = isToday && (slotMinutes <= nowMinutes)
+                const disabled = isBooked || isPast
+
+                return `
+                    <button
+                        type="button"
+                        onclick="selectTime('${slot}')"
+                        ${disabled ? 'disabled' : ''}
+                        class="time-slot"
+                        data-time="${slot}"
+                        title="${isPast ? 'Horário já passou' : (isBooked ? 'Indisponível' : 'Disponível')}"
+                    >
+                        ${slot}
+                    </button>
+                `
+            }).join('')
+        }
+
+        function selectTime(time) {
+            selectedTime = time
+            document.querySelectorAll('.time-slot').forEach(el => {
+                if (el.dataset.time === time) {
+                    el.classList.add('selected')
+                } else {
+                    el.classList.remove('selected')
+                }
+            })
+            setTimeout(() => showStep(4), 300)
+        }
+
+        document.getElementById('backToProfessional').addEventListener('click', () => showStep(1))
+        document.getElementById('backToService').addEventListener('click', () => showStep(2))
+        document.getElementById('backToDate').addEventListener('click', () => showStep(3))
+
+        // WhatsApp mask
+        document.getElementById('clientWhatsapp').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '')
+            if (value.length > 11) value = value.slice(0, 11)
+            e.target.value = value
+        })
+
+        document.getElementById('bookingForm').addEventListener('submit', async (e) => {
+            e.preventDefault()
+
+            const submitBtn = document.getElementById('submitBtn')
+            submitBtn.disabled = true
+            submitBtn.textContent = 'Processando...'
+
+            try {
+                console.log('=== INICIANDO AGENDAMENTO ===')
+                
+                if (!selectedProfessionalId) {
+                    throw new Error('Selecione um profissional')
+                }
+                if (!selectedServiceId) {
+                    throw new Error('Selecione um serviço')
+                }
+                if (!selectedDate) {
+                    throw new Error('Selecione uma data')
+                }
+                if (!selectedTime) {
+                    throw new Error('Selecione um horário')
+                }
+
+                const clientName = document.getElementById('clientName').value.trim()
+                const clientWhatsapp = document.getElementById('clientWhatsapp').value.trim()
+                const clientEmail = document.getElementById('clientEmail').value.trim()
+
+                if (!clientName) {
+                    throw new Error('Digite seu nome')
+                }
+                if (!clientWhatsapp) {
+                    throw new Error('Digite seu WhatsApp')
+                }
+                if (clientWhatsapp.length < 10 || clientWhatsapp.length > 11) {
+                    throw new Error('WhatsApp inválido. Digite DDD + número (10 ou 11 dígitos)')
+                }
+
+                const service = services.find(s => s.id === selectedServiceId)
+                
+                if (!service) {
+                    throw new Error('Serviço não encontrado')
+                }
+
+                // Calculate end time
+                const [hours, minutes] = selectedTime.split(':').map(Number)
+                const startTime = new Date()
+                startTime.setHours(hours, minutes, 0)
+                const endTime = new Date(startTime.getTime() + service.duracao_minutos * 60000)
+                const hora_fim = `${endTime.getHours().toString().padStart(2, '0')}:${endTime.getMinutes().toString().padStart(2, '0')}`
+
+                // Create appointment - matching the existing schema
+                const appointmentData = {
+                    tenant_id: tenantId,
+                    professional_id: selectedProfessionalId,
+                    service_id: selectedServiceId,
+                    data_agendamento: selectedDate,
+                    hora_inicio: selectedTime,
+                    hora_fim: hora_fim,
+                    nome_cliente: clientName,
+                    cliente_nome: clientName,
+                    cliente_whatsapp: clientWhatsapp,
+                    whatsapp_cliente: clientWhatsapp,
+                    cliente_email: clientEmail || null,
+                    email_cliente: clientEmail || null,
+                    cliente_observacoes: '',
+                    valor_servico: service?.preco || 0,
+                    status: 'confirmado',
+                    notificacao_enviada: false,
+                    lembrete_enviado: false
+                }
+
+                console.log('Enviando agendamento:', appointmentData)
+
+                const { data, error } = await supabase
+                    .from('appointments')
+                    .insert(appointmentData)
+                    .select()
+
+                if (error) {
+                    console.error('Erro detalhado:', error)
+                    throw new Error(error.message || 'Erro ao criar agendamento')
+                }
+
+                console.log('Agendamento criado com sucesso!')
+
+                // Show success
+                document.getElementById('bookingForm').classList.add('hidden')
+                document.getElementById('successMessage').classList.remove('hidden')
+                window.scrollTo({ top: 0, behavior: 'smooth' })
+
+            } catch (error) {
+                console.error('Erro no agendamento:', error)
+                showError(error.message || 'Erro desconhecido ao criar agendamento')
+                submitBtn.disabled = false
+                submitBtn.textContent = 'Confirmar Agendamento ✓'
+            }
+        })
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage')
+            errorDiv.textContent = '❌ ' + message
+            errorDiv.classList.remove('hidden')
+            window.scrollTo({ top: errorDiv.offsetTop - 100, behavior: 'smooth' })
+            setTimeout(() => errorDiv.classList.add('hidden'), 5000)
+        }
+
+        // Week Navigation
+        function changeWeek(days) {
+            currentWeekStart.setDate(currentWeekStart.getDate() + days)
+            renderDaySelector()
+        }
+
+        function renderDaySelector() {
+            const container = document.getElementById('daySelector')
+            const days = []
+            const startDate = new Date(currentWeekStart)
+            
+            for (let i = 0; i < 7; i++) {
+                const date = new Date(startDate)
+                date.setDate(startDate.getDate() + i)
+                days.push(date)
+            }
+
+            const dayNames = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB']
+            const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
+            const today = new Date()
+            today.setHours(0, 0, 0, 0)
+
+            container.innerHTML = days.map((date) => {
+                // Format date correctly to avoid timezone issues
+                const year = date.getFullYear()
+                const month = String(date.getMonth() + 1).padStart(2, '0')
+                const day = String(date.getDate()).padStart(2, '0')
+                const dateStr = `${year}-${month}-${day}`
+                
+                const isToday = date.toDateString() === today.toDateString()
+                const isPast = date < today
+                const isSelected = selectedDate === dateStr
+                
+                // Only show "Hoje" if it's today AND selected, or if no date is selected yet
+                const showToday = isToday && (!selectedDate || isSelected)
+                
+                return `
+                    <div onclick="${isPast ? '' : `selectDate('${dateStr}')`}" 
+                         class="day-selector ${isSelected ? 'selected' : ''} ${isPast ? 'opacity-50 cursor-not-allowed' : ''}"
+                         data-date="${dateStr}">
+                        <div class="text-xs font-medium text-gray-500 mb-1">${dayNames[date.getDay()]}</div>
+                        <div class="text-2xl font-bold text-gray-900 mb-1">${date.getDate()}</div>
+                        <div class="text-xs text-gray-500">${months[date.getMonth()]}</div>
+                        ${showToday ? '<div class="text-xs text-red-600 font-semibold mt-1">Hoje</div>' : ''}
+                    </div>
+                `
+            }).join('')
+        }
+
+        // Calendar Modal Functions
+        function openCalendarModal() {
+            calendarDate = new Date()
+            renderCalendar()
+            document.getElementById('calendarModal').classList.remove('hidden')
+            document.body.style.overflow = 'hidden'
+        }
+
+        function closeCalendarModal(event) {
+            if (event && event.target !== event.currentTarget) return
+            document.getElementById('calendarModal').classList.add('hidden')
+            document.body.style.overflow = 'auto'
+        }
+
+        function changeCalendarMonth(delta) {
+            calendarDate.setMonth(calendarDate.getMonth() + delta)
+            renderCalendar()
+        }
+
+        function renderCalendar() {
+            const months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
+                          'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
+            
+            document.getElementById('calendarMonthYear').textContent = 
+                `${months[calendarDate.getMonth()]} ${calendarDate.getFullYear()}`
+
+            const firstDay = new Date(calendarDate.getFullYear(), calendarDate.getMonth(), 1)
+            const lastDay = new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 0)
+            const startDay = firstDay.getDay()
+            const daysInMonth = lastDay.getDate()
+            
+            const today = new Date()
+            today.setHours(0, 0, 0, 0)
+            
+            let html = ''
+            
+            // Empty cells for days before month starts
+            for (let i = 0; i < startDay; i++) {
+                html += '<div></div>'
+            }
+            
+            // Days of the month
+            for (let day = 1; day <= daysInMonth; day++) {
+                const date = new Date(calendarDate.getFullYear(), calendarDate.getMonth(), day)
+                
+                // Format date correctly
+                const year = date.getFullYear()
+                const month = String(date.getMonth() + 1).padStart(2, '0')
+                const dayStr = String(date.getDate()).padStart(2, '0')
+                const dateStr = `${year}-${month}-${dayStr}`
+                
+                const isToday = date.toDateString() === today.toDateString()
+                const isPast = date < today
+                const isSelected = selectedDate === dateStr
+                
+                html += `
+                    <div onclick="${isPast ? '' : `selectDateFromCalendar('${dateStr}')`}" 
+                         class="calendar-day ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''} ${isPast ? 'disabled' : ''}">
+                        ${day}
+                    </div>
+                `
+            }
+            
+            document.getElementById('calendarGrid').innerHTML = html
+        }
+
+        function selectDateFromCalendar(dateStr) {
+            // Parse the date string correctly (YYYY-MM-DD format)
+            const parts = dateStr.split('-')
+            const date = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]))
+            
+            selectedDate = dateStr
+            
+            // Update currentWeekStart to show the week containing this date
+            // Start from Sunday of the week
+            const dayOfWeek = date.getDay()
+            currentWeekStart = new Date(date)
+            currentWeekStart.setDate(date.getDate() - dayOfWeek)
+            
+            renderDaySelector()
+            selectDate(dateStr)
+            closeCalendarModal()
+        }
+
+        function selectTodayFromCalendar() {
+            const today = new Date()
+            const year = today.getFullYear()
+            const month = String(today.getMonth() + 1).padStart(2, '0')
+            const day = String(today.getDate()).padStart(2, '0')
+            const dateStr = `${year}-${month}-${day}`
+            selectDateFromCalendar(dateStr)
+        }
+
+        init()
+    </script>
+</body>
+</html>

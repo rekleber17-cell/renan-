@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clientes - Salon Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <div class="w-64 bg-white border-r border-gray-200">
+            <div class="p-6 border-b border-gray-200">
+                <h1 class="text-2xl font-bold text-red-600">💈 Salon Panel</h1>
+            </div>
+            <nav class="p-4 space-y-1">
+                <a href="dashboard.html" class="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg">📊 Dashboard</a>
+                <a href="profissionais.html" class="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg">👥 Profissionais</a>
+                <a href="servicos.html" class="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg">✂️ Serviços</a>
+                <a href="agenda.html" class="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg">📅 Agenda</a>
+                <a href="clientes.html" class="flex items-center gap-3 px-4 py-3 bg-red-50 text-red-700 rounded-lg font-medium">👤 Clientes</a>
+                <a href="configuracoes.html" class="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg">⚙️ Configurações</a>
+            </nav>
+            <div class="p-4 border-t border-gray-200 absolute bottom-0 w-64">
+                <button onclick="logout()" class="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg w-full">🚪 Sair</button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-8">
+            <div class="mb-8">
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">Clientes</h1>
+                <p class="text-gray-600">Histórico e estatísticas dos seus clientes</p>
+            </div>
+
+            <!-- Filtro de Busca -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+                <div class="flex gap-4">
+                    <input type="text" id="searchInput" placeholder="Buscar por nome ou telefone..." class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500">
+                    <button onclick="loadClients()" class="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700">
+                        Buscar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Lista de Clientes -->
+            <div id="clientsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="text-center py-12 text-gray-500">
+                    Carregando...
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal de Histórico -->
+    <div id="historyModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden flex flex-col">
+            <div class="p-6 border-b border-gray-200 flex items-center justify-between">
+                <h3 class="text-xl font-semibold text-gray-900" id="modalClientName">Histórico do Cliente</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto flex-1">
+                <div id="modalContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
+    <script>
+        const SUPABASE_URL = 'https://kxdmigytkedpahccfraa.supabase.co'
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt4ZG1pZ3l0a2VkcGFoY2NmcmFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgxNDkxMjAsImV4cCI6MjA4MzcyNTEyMH0.-QQCRguA4oPqM3p4Mpq7JB8XEmhdj5VlT62K_TS2q4o'
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+
+        // Funções auxiliares
+        async function checkAuth() {
+            const { data: { session } } = await supabase.auth.getSession()
+            if (!session) {
+                window.location.href = 'index.html'
+                return null
+            }
+            return session
+        }
+
+        async function getTenant(userId) {
+            const { data, error } = await supabase
+                .from('tenants')
+                .select('*')
+                .eq('user_id', userId)
+                .single()
+            return error ? null : data
+        }
+
+        function logout() {
+            supabase.auth.signOut()
+            window.location.href = 'index.html'
+        }
+
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
+        }
+
+        function formatPhone(phone) {
+            if (!phone) return 'N/A'
+            const cleaned = phone.replace(/\D/g, '')
+            if (cleaned.length === 11) {
+                return cleaned.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3')
+            }
+            if (cleaned.length === 10) {
+                return cleaned.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3')
+            }
+            return phone
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return 'N/A'
+            const date = new Date(dateStr + 'T00:00:00')
+            return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+        }
+
+        function formatDateTime(dateStr, timeStr) {
+            return `${formatDate(dateStr)} às ${timeStr ? timeStr.substring(0, 5) : 'N/A'}`
+        }
+    </script>
+
+    <script>
+        let tenant = null
+
+        async function loadClients() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase()
+
+            // Buscar todos os agendamentos e agrupar por cliente
+            let query = supabase
+                .from('appointments')
+                .select('cliente_nome, cliente_whatsapp, nome_cliente, whatsapp_cliente, valor_servico, status, data_agendamento')
+                .eq('tenant_id', tenant.id)
+                .order('data_agendamento', { ascending: false })
+
+            const { data: appointments, error } = await query
+
+            if (error) {
+                console.error('Erro:', error)
+                return
+            }
+
+            // Agrupar por cliente (usando WhatsApp como chave única)
+            const clientsMap = {}
+
+            appointments.forEach(apt => {
+                const nome = apt.cliente_nome || apt.nome_cliente
+                const whatsapp = apt.cliente_whatsapp || apt.whatsapp_cliente
+
+                if (!whatsapp) return
+
+                if (!clientsMap[whatsapp]) {
+                    clientsMap[whatsapp] = {
+                        nome: nome,
+                        whatsapp: whatsapp,
+                        totalAgendamentos: 0,
+                        totalGasto: 0,
+                        ultimoAgendamento: apt.data_agendamento,
+                        agendamentos: []
+                    }
+                }
+
+                clientsMap[whatsapp].totalAgendamentos++
+                if (apt.status === 'concluido') {
+                    clientsMap[whatsapp].totalGasto += apt.valor_servico
+                }
+                clientsMap[whatsapp].agendamentos.push(apt)
+
+                // Atualizar último agendamento
+                if (apt.data_agendamento > clientsMap[whatsapp].ultimoAgendamento) {
+                    clientsMap[whatsapp].ultimoAgendamento = apt.data_agendamento
+                }
+            })
+
+            // Converter para array e filtrar por busca
+            let clients = Object.values(clientsMap)
+
+            if (searchTerm) {
+                clients = clients.filter(c =>
+                    c.nome.toLowerCase().includes(searchTerm) ||
+                    c.whatsapp.includes(searchTerm)
+                )
+            }
+
+            // Ordenar por total gasto (maior primeiro)
+            clients.sort((a, b) => b.totalGasto - a.totalGasto)
+
+            displayClients(clients)
+        }
+
+        function displayClients(clients) {
+            const list = document.getElementById('clientsList')
+
+            if (clients.length === 0) {
+                list.innerHTML = `
+                    <div class="col-span-full text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
+                        <p class="text-gray-600">Nenhum cliente encontrado</p>
+                    </div>
+                `
+                return
+            }
+
+            list.innerHTML = clients.map(client => `
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center text-2xl">
+                                👤
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-gray-900">${client.nome}</h3>
+                                <p class="text-sm text-gray-500">${formatPhone(client.whatsapp)}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2 mb-4">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Total de Visitas:</span>
+                            <span class="font-semibold text-gray-900">${client.totalAgendamentos}</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Total Gasto:</span>
+                            <span class="font-semibold text-green-600">${formatCurrency(client.totalGasto)}</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Última Visita:</span>
+                            <span class="font-semibold text-gray-900">${formatDate(client.ultimoAgendamento)}</span>
+                        </div>
+                    </div>
+
+                    <button
+                        onclick='showHistory(${JSON.stringify(client).replace(/'/g, "&apos;")})'
+                        class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm font-medium"
+                    >
+                        Ver Histórico Completo
+                    </button>
+                </div>
+            `).join('')
+        }
+
+        async function showHistory(client) {
+            document.getElementById('modalClientName').textContent = `Histórico de ${client.nome}`
+
+            // Buscar agendamentos completos com detalhes
+            const { data: appointments, error } = await supabase
+                .from('appointments')
+                .select(`
+                    *,
+                    professionals (nome),
+                    services (nome)
+                `)
+                .eq('tenant_id', tenant.id)
+                .or(`cliente_whatsapp.eq.${client.whatsapp},whatsapp_cliente.eq.${client.whatsapp}`)
+                .order('data_agendamento', { ascending: false })
+                .order('hora_inicio', { ascending: false })
+
+            if (error) {
+                console.error('Erro:', error)
+                return
+            }
+
+            const content = document.getElementById('modalContent')
+
+            if (appointments.length === 0) {
+                content.innerHTML = '<p class="text-center text-gray-600">Nenhum agendamento encontrado</p>'
+            } else {
+                content.innerHTML = `
+                    <div class="space-y-4">
+                        ${appointments.map(apt => `
+                            <div class="border border-gray-200 rounded-lg p-4">
+                                <div class="flex items-start justify-between mb-3">
+                                    <div>
+                                        <p class="font-semibold text-gray-900">${formatDateTime(apt.data_agendamento, apt.hora_inicio)}</p>
+                                        <p class="text-sm text-gray-600">${apt.professionals?.nome || 'N/A'}</p>
+                                    </div>
+                                    <span class="px-3 py-1 text-xs rounded-full ${getStatusColor(apt.status)}">
+                                        ${getStatusLabel(apt.status)}
+                                    </span>
+                                </div>
+                                <div class="space-y-1">
+                                    <p class="text-sm text-gray-700">
+                                        <span class="font-medium">Serviço:</span> ${apt.services?.nome || 'N/A'}
+                                    </p>
+                                    <p class="text-sm text-gray-700">
+                                        <span class="font-medium">Valor:</span> ${formatCurrency(apt.valor_servico)}
+                                    </p>
+                                    ${apt.observacoes ? `<p class="text-sm text-gray-600 italic">${apt.observacoes}</p>` : ''}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `
+            }
+
+            document.getElementById('historyModal').classList.remove('hidden')
+        }
+
+        function closeModal() {
+            document.getElementById('historyModal').classList.add('hidden')
+        }
+
+        function getStatusColor(status) {
+            const colors = {
+                'pendente': 'bg-yellow-100 text-yellow-700',
+                'confirmado': 'bg-blue-100 text-blue-700',
+                'concluido': 'bg-green-100 text-green-700',
+                'cancelado': 'bg-red-100 text-red-700',
+                'falta': 'bg-gray-100 text-gray-700'
+            }
+            return colors[status] || 'bg-gray-100 text-gray-700'
+        }
+
+        function getStatusLabel(status) {
+            const labels = {
+                'pendente': 'Pendente',
+                'confirmado': 'Confirmado',
+                'concluido': 'Concluído',
+                'cancelado': 'Cancelado',
+                'falta': 'Falta'
+            }
+            return labels[status] || status
+        }
+
+        // Fechar modal ao clicar fora
+        document.getElementById('historyModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal()
+            }
+        })
+
+        // Buscar ao pressionar Enter
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                loadClients()
+            }
+        })
+
+        async function init() {
+            const session = await checkAuth()
+            if (!session) return
+
+            tenant = await getTenant(session.user.id)
+            if (!tenant) {
+                alert('Salão não encontrado!')
+                logout()
+                return
+            }
+
+            loadClients()
+        }
+
+        init()
+    </script>
+</body>
+</html>

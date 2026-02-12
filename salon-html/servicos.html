@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Serviços - Salon Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <div class="w-64 bg-white border-r border-gray-200">
+            <div class="p-6 border-b border-gray-200">
+                <h1 class="text-2xl font-bold text-red-600">💈 Salon Panel</h1>
+            </div>
+            <nav class="p-4 space-y-1">
+                <a href="dashboard.html" class="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg">📊 Dashboard</a>
+                <a href="profissionais.html" class="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg">👥 Profissionais</a>
+                <a href="servicos.html" class="flex items-center gap-3 px-4 py-3 bg-red-50 text-red-700 rounded-lg font-medium">✂️ Serviços</a>
+                <a href="agenda.html" class="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg">📅 Agenda</a>
+                <a href="clientes.html" class="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg">👤 Clientes</a>
+                <a href="configuracoes.html" class="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg">⚙️ Configurações</a>
+            </nav>
+            <div class="p-4 border-t border-gray-200 absolute bottom-0 w-64">
+                <button onclick="logout()" class="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg w-full">🚪 Sair</button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-8">
+            <div class="flex items-center justify-between mb-8">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2">Serviços</h1>
+                    <p class="text-gray-600">Gerencie os serviços oferecidos</p>
+                </div>
+                <button onclick="showForm()" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 font-medium">➕ Novo Serviço</button>
+            </div>
+
+            <!-- Formulário -->
+            <div id="formCard" class="hidden bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+                <div class="p-6 border-b border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-900" id="formTitle">Novo Serviço</h3>
+                </div>
+                <div class="p-6">
+                    <form id="serviceForm" class="space-y-4">
+                        <input type="hidden" id="editId">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Nome do Serviço *</label>
+                                <input type="text" id="nome" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Categoria</label>
+                                <select id="categoria" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500">
+                                    <option value="Corte">Corte</option>
+                                    <option value="Coloração">Coloração</option>
+                                    <option value="Tratamento">Tratamento</option>
+                                    <option value="Manicure">Manicure</option>
+                                    <option value="Depilação">Depilação</option>
+                                    <option value="Estética">Estética</option>
+                                    <option value="Outro">Outro</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Preço (R$) *</label>
+                                <input type="number" id="preco" step="0.01" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Duração (minutos) *</label>
+                                <input type="number" id="duracao" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
+                            <textarea id="descricao" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500"></textarea>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <input type="checkbox" id="destaque" class="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500">
+                            <label for="destaque" class="text-sm text-gray-700">Destaque (aparece primeiro)</label>
+                        </div>
+                        <div class="flex gap-3">
+                            <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">Salvar</button>
+                            <button type="button" onclick="hideForm()" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300">Cancelar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Lista de Serviços -->
+            <div id="servicesList"></div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
+    <script>
+        const SUPABASE_URL = 'https://kxdmigytkedpahccfraa.supabase.co'
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt4ZG1pZ3l0a2VkcGFoY2NmcmFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgxNDkxMjAsImV4cCI6MjA4MzcyNTEyMH0.-QQCRguA4oPqM3p4Mpq7JB8XEmhdj5VlT62K_TS2q4o'
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+
+        // Funções auxiliares
+        async function checkAuth() {
+            const { data: { session } } = await supabase.auth.getSession()
+            if (!session) {
+                window.location.href = 'index.html'
+                return null
+            }
+            return session
+        }
+
+        async function getTenant(userId) {
+            const { data, error } = await supabase
+                .from('tenants')
+                .select('*')
+                .eq('user_id', userId)
+                .single()
+            return error ? null : data
+        }
+
+        function logout() {
+            supabase.auth.signOut()
+            window.location.href = 'index.html'
+        }
+
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
+        }
+    </script>
+    
+    <script>
+        let tenant = null
+
+        function showForm(service = null) {
+            document.getElementById('formCard').classList.remove('hidden')
+            document.getElementById('formTitle').textContent = service ? 'Editar Serviço' : 'Novo Serviço'
+            
+            if (service) {
+                document.getElementById('editId').value = service.id
+                document.getElementById('nome').value = service.nome
+                document.getElementById('categoria').value = service.categoria || 'Outro'
+                document.getElementById('preco').value = service.preco
+                document.getElementById('duracao').value = service.duracao_minutos
+                document.getElementById('descricao').value = service.descricao || ''
+                document.getElementById('destaque').checked = service.destaque || false
+            } else {
+                document.getElementById('serviceForm').reset()
+                document.getElementById('editId').value = ''
+            }
+        }
+
+        function hideForm() {
+            document.getElementById('formCard').classList.add('hidden')
+            document.getElementById('serviceForm').reset()
+        }
+
+        async function loadServices() {
+            const { data, error } = await supabase
+                .from('services')
+                .select('*')
+                .eq('tenant_id', tenant.id)
+                .order('destaque', { ascending: false })
+                .order('categoria')
+
+            if (error) {
+                console.error('Erro:', error)
+                return
+            }
+
+            const list = document.getElementById('servicesList')
+            
+            if (data.length === 0) {
+                list.innerHTML = `
+                    <div class="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
+                        <p class="text-gray-600 mb-4">Nenhum serviço cadastrado</p>
+                        <button onclick="showForm()" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">
+                            Cadastrar Primeiro Serviço
+                        </button>
+                    </div>
+                `
+                return
+            }
+
+            // Agrupar por categoria
+            const grouped = {}
+            data.forEach(s => {
+                const cat = s.categoria || 'Outro'
+                if (!grouped[cat]) grouped[cat] = []
+                grouped[cat].push(s)
+            })
+
+            list.innerHTML = Object.keys(grouped).map(categoria => `
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-3">${categoria}</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        ${grouped[categoria].map(s => `
+                            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 ${!s.ativo ? 'opacity-50' : ''}">
+                                <div class="flex items-start justify-between mb-3">
+                                    <div class="flex-1">
+                                        <h4 class="font-semibold text-gray-900 mb-1">${s.nome}</h4>
+                                        ${s.destaque ? '<span class="text-xs px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700">⭐ Destaque</span>' : ''}
+                                    </div>
+                                    <span class="text-xs px-2 py-0.5 rounded-full ${s.ativo ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}">
+                                        ${s.ativo ? 'Ativo' : 'Inativo'}
+                                    </span>
+                                </div>
+                                ${s.descricao ? `<p class="text-sm text-gray-600 mb-3">${s.descricao}</p>` : ''}
+                                <div class="flex items-center justify-between mb-4 text-sm text-gray-600">
+                                    <span class="font-semibold text-red-600 text-lg">${formatCurrency(s.preco)}</span>
+                                    <span>⏱️ ${s.duracao_minutos}min</span>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button onclick='showForm(${JSON.stringify(s).replace(/'/g, "&apos;")})' class="flex-1 px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg">✏️ Editar</button>
+                                    <button onclick="toggleAtivo('${s.id}', ${s.ativo})" class="flex-1 px-3 py-2 text-sm bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg">${s.ativo ? 'Desativar' : 'Ativar'}</button>
+                                    <button onclick="deleteService('${s.id}')" class="px-3 py-2 text-sm bg-red-100 hover:bg-red-200 text-red-700 rounded-lg">🗑️</button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('')
+        }
+
+        document.getElementById('serviceForm').addEventListener('submit', async (e) => {
+            e.preventDefault()
+            
+            const editId = document.getElementById('editId').value
+            const data = {
+                nome: document.getElementById('nome').value,
+                categoria: document.getElementById('categoria').value,
+                preco: parseFloat(document.getElementById('preco').value),
+                duracao_minutos: parseInt(document.getElementById('duracao').value),
+                descricao: document.getElementById('descricao').value || null,
+                destaque: document.getElementById('destaque').checked,
+            }
+
+            if (editId) {
+                const { error } = await supabase
+                    .from('services')
+                    .update(data)
+                    .eq('id', editId)
+                if (error) {
+                    alert('Erro ao atualizar: ' + error.message)
+                    return
+                }
+                alert('Serviço atualizado!')
+            } else {
+                data.tenant_id = tenant.id
+                const { error } = await supabase
+                    .from('services')
+                    .insert(data)
+                if (error) {
+                    alert('Erro ao cadastrar: ' + error.message)
+                    return
+                }
+                alert('Serviço cadastrado!')
+            }
+
+            hideForm()
+            loadServices()
+        })
+
+        async function toggleAtivo(id, ativo) {
+            const { error } = await supabase
+                .from('services')
+                .update({ ativo: !ativo })
+                .eq('id', id)
+            if (error) {
+                alert('Erro: ' + error.message)
+                return
+            }
+            loadServices()
+        }
+
+        async function deleteService(id) {
+            if (!confirm('Tem certeza que deseja excluir?')) return
+            const { error } = await supabase
+                .from('services')
+                .delete()
+                .eq('id', id)
+            if (error) {
+                alert('Erro: ' + error.message)
+                return
+            }
+            loadServices()
+        }
+
+        async function init() {
+            const session = await checkAuth()
+            if (!session) return
+            tenant = await getTenant(session.user.id)
+            if (!tenant) {
+                alert('Salão não encontrado!')
+                logout()
+                return
+            }
+            loadServices()
+        }
+
+        init()
+    </script>
+</body>
+</html>

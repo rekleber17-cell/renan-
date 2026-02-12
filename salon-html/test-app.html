@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Salon Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
+</head>
+<body class="bg-gray-50">
+    <div id="app" class="p-4">
+        <h1 class="text-3xl font-bold mb-4">Test Console</h1>
+        <div id="log" class="bg-white p-4 rounded border border-gray-300 font-mono text-sm space-y-1"></div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/router.js"></script>
+    
+    <script>
+        const logDiv = document.getElementById('log')
+        
+        function addLog(msg, type = 'info') {
+            const line = document.createElement('div')
+            const color = type === 'error' ? 'text-red-600' : type === 'success' ? 'text-green-600' : 'text-gray-800'
+            line.className = color
+            line.textContent = `[${type.toUpperCase()}] ${msg}`
+            logDiv.appendChild(line)
+            console.log(`[${type}] ${msg}`)
+        }
+
+        addLog('Iniciando teste...')
+        addLog('Supabase carregado: ' + (typeof window.supabase !== 'undefined'))
+        addLog('Config carregado: ' + (typeof supabase !== 'undefined'))
+        addLog('Router carregado: ' + (typeof router !== 'undefined'))
+        addLog('Page classe carregada: ' + (typeof Page !== 'undefined'))
+
+        // Test auth
+        checkAuth().then(session => {
+            if (session) {
+                addLog('Autenticação bem-sucedida', 'success')
+                addLog('User ID: ' + session.user.id)
+                getTenant(session.user.id).then(t => {
+                    if (t) {
+                        addLog('Tenant carregado: ' + t.id, 'success')
+                    } else {
+                        addLog('Erro ao carregar tenant', 'error')
+                    }
+                })
+            } else {
+                addLog('Não autenticado - redirecionando para login', 'error')
+            }
+        }).catch(err => {
+            addLog('Erro na autenticação: ' + err.message, 'error')
+        })
+    </script>
+</body>
+</html>
