@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salon Panel - Sistema de Gestão</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo"><span>💈 Salon Panel</span></div>
+            <button class="sidebar-toggle-btn" onclick="toggleSidebar()" title="Expandir/Recolher Menu">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active" data-page="dashboard">
+                <i class="fas fa-chart-line"></i><span>Dashboard</span>
+            </a>
+            <a href="#" class="nav-item" data-page="agenda">
+                <i class="fas fa-calendar-alt"></i><span>Agenda</span>
+            </a>
+            <a href="#" class="nav-item" data-page="profissionais">
+                <i class="fas fa-users"></i><span>Profissionais</span>
+            </a>
+            <a href="#" class="nav-item" data-page="servicos">
+                <i class="fas fa-cut"></i><span>Serviços</span>
+            </a>
+            <a href="#" class="nav-item" data-page="clientes">
+                <i class="fas fa-user-friends"></i><span>Clientes</span>
+            </a>
+            <a href="#" class="nav-item" data-page="configuracoes">
+                <i class="fas fa-cog"></i><span>Configurações</span>
+            </a>
+        </nav>
+        <div class="sidebar-footer" style="padding: 1rem; border-top: 1px solid #e0e0e0;">
+            <button onclick="Auth.logout()" class="btn btn-danger" style="width: 100%;">
+                <i class="fas fa-sign-out-alt"></i> Sair
+            </button>
+        </div>
+    </aside>
+    
+    <main class="main-content" style="margin-left: 260px;">
+        <header class="top-bar" style="background: white; padding: 1.5rem; border-bottom: 1px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center;">
+            <h1 id="page-title" style="font-size: 1.5rem; color: #333;">Dashboard</h1>
+            <div class="header-actions" style="display: flex; gap: 1rem; align-items: center;">
+                <span id="current-date" style="color: #666;"></span>
+                <button class="btn-refresh" onclick="App.refreshCurrentPage()" style="background: #4CAF50; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer;">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <div class="user-info" style="display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-user-circle" style="font-size: 1.5rem; color: #666;"></i>
+                    <span id="user-name">Usuário</span>
+                </div>
+            </div>
+        </header>
+        <div class="content-wrapper" style="padding: 2rem;">
+            <div id="content-area">
+                <div class="loading-screen" style="text-align: center; padding: 4rem;">
+                    <div class="spinner" style="border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+                    <p style="margin-top: 1rem; color: #666;">Carregando...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/modal-system.js"></script>
+    <script src="assets/js/auth.js"></script>
+    <script src="assets/js/pages/dashboard.js"></script>
+    <script src="assets/js/pages/agenda.js"></script>
+    <script src="assets/js/pages/profissionais.js"></script>
+    <script src="assets/js/pages/servicos.js"></script>
+    <script src="assets/js/pages/clientes.js"></script>
+    <script src="assets/js/pages/configuracoes.js"></script>
+    <script src="assets/js/app.js"></script>
+</body>
+</html>

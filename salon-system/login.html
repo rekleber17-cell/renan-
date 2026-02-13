@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Salon Panel</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .login-box {
+            background: white;
+            padding: 3rem;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 420px;
+            width: 100%;
+        }
+        .login-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .login-header h1 {
+            color: #333;
+            margin: 1rem 0 0.5rem 0;
+            font-size: 2rem;
+        }
+        .login-header p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .btn:hover { transform: translateY(-2px); }
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .alert {
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            display: none;
+        }
+        .alert.show { display: block; }
+        .alert-error {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #ef5350;
+        }
+        .alert-success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #66bb6a;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-box">
+        <div class="login-header">
+            <div style="font-size: 4rem;">💈</div>
+            <h1>Salon Panel</h1>
+            <p>Sistema de Gestão de Salões</p>
+        </div>
+
+        <div id="alert" class="alert"></div>
+
+        <form id="login-form">
+            <div class="form-group">
+                <label>📧 E-mail</label>
+                <input type="email" id="email" required autofocus placeholder="seu@email.com">
+            </div>
+
+            <div class="form-group">
+                <label>🔒 Senha</label>
+                <input type="password" id="password" required placeholder="••••••••">
+            </div>
+
+            <button type="submit" class="btn" id="btn-login">
+                Entrar
+            </button>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/auth.js"></script>
+    <script>
+        const alertDiv = document.getElementById('alert');
+        
+        function showAlert(message, type) {
+            alertDiv.textContent = message;
+            alertDiv.className = 'alert alert-' + type + ' show';
+            setTimeout(() => {
+                alertDiv.classList.remove('show');
+            }, 5000);
+        }
+
+        // Aguardar config carregar
+        setTimeout(() => {
+            console.log('🔌 Configuração:', {
+                url: window.SUPABASE_URL,
+                supabase: !!window.supabase
+            });
+
+            // Verificar se já está logado
+            const currentUser = Auth.getUser();
+            if (currentUser) {
+                console.log('✅ Usuário já logado');
+                window.location.href = 'index.html';
+            }
+        }, 100);
+
+        // Login
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const btn = document.getElementById('btn-login');
+
+            if (!email || !password) {
+                showAlert('❌ Preencha todos os campos!', 'error');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = '⏳ Entrando...';
+
+            try {
+                await Auth.login(email, password);
+                // O Auth.login já redireciona
+            } catch (error) {
+                console.error('❌ Erro:', error);
+                showAlert('❌ ' + error.message, 'error');
+                btn.disabled = false;
+                btn.textContent = 'Entrar';
+            }
+        });
+    </script>
+</body>
+</html>
